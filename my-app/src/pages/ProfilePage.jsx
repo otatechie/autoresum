@@ -133,10 +133,10 @@ export const ProfilePage = () => {
                 <div className="bg-white dark:bg-gray-800 p-6 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                                 Hello, {userData.first_name || 'there'}! 👋
                             </h1>
-                            <p className="mt-1 text-base text-gray-500 dark:text-gray-400">
+                            <p className="mt-1 text-md text-gray-500 dark:text-gray-400">
                                 Manage your account settings and preferences
                             </p>
                         </div>

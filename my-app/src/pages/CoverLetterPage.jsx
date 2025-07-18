@@ -199,8 +199,8 @@ export const CoverLetterPage = () => {
             {/* Header */}
             <div className="bg-white dark:bg-gray-800 p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="max-w-7xl mx-auto">
-                    <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Create Cover Letter</h1>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create Cover Letter</h1>
+                        <p className="mt-1 text-md text-gray-500 dark:text-gray-400">
                         Fill in your details to generate a professional cover letter
                         </p>
                 </div>

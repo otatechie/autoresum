@@ -21,10 +21,21 @@ class ResumeRepository:
     def generate_resume_content(self, user_data: dict, user_id: int) -> str:
         """Trigger async celery task"""
         from resumes.tasks import generate_resume_content_task
+        from django.conf import settings
 
         task = generate_resume_content_task.apply_async(
             args=[user_data, user_id]
         )
+
+        # If using eager execution, save the result immediately
+        if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
+            try:
+                # Get the result and save it to cache
+                result = task.get()  # This will execute the task immediately
+                self.save_task_result(task.id, result)
+                logger.info(f"Task {task.id} completed and cached in eager mode")
+            except Exception as e:
+                logger.error(f"Failed to save task result in eager mode: {e}")
 
         return task.id
 
@@ -33,10 +44,21 @@ class ResumeRepository:
     ) -> str:
         """Trigger async celery task"""
         from resumes.tasks import update_resume_content_task
+        from django.conf import settings
 
         task = update_resume_content_task.apply_async(
             args=[resume_id, user_data, user_id]
         )
+
+        # If using eager execution, save the result immediately
+        if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
+            try:
+                # Get the result and save it to cache
+                result = task.get()  # This will execute the task immediately
+                self.save_task_result(task.id, result)
+                logger.info(f"Task {task.id} completed and cached in eager mode")
+            except Exception as e:
+                logger.error(f"Failed to save task result in eager mode: {e}")
 
         return task.id
 

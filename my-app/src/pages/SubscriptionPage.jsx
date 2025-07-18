@@ -8,23 +8,12 @@ export const SubscriptionPage = () => {
             <div className="bg-white dark:bg-gray-800 p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                             Subscription Management
                         </h1>
-                        <p className="mt-1 text-base text-gray-500 dark:text-gray-400">
+                        <p className="mt-1 text-md text-gray-500 dark:text-gray-400">
                             Manage your subscription and billing preferences
                         </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Link
-                            to="/dashboard"
-                            className="btn btn-outline"
-                        >
-                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
-                            Back to Dashboard
-                        </Link>
                     </div>
                 </div>
             </div>

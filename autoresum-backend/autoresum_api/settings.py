@@ -228,8 +228,21 @@ SWAGGER_SETTINGS = {
 }
 
 # CELERY
-CELERY_BROKER_URL = "redis://localhost:6379/0"
-CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+# Use Redis if available, otherwise use memory broker
+try:
+    import redis
+    # Try to connect to WSL Redis
+    redis_client = redis.Redis(host='localhost', port=6379, db=0, socket_connect_timeout=5)
+    redis_client.ping()  # Test connection
+    CELERY_BROKER_URL = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+    print("Connected to Redis successfully")
+except (ImportError, redis.ConnectionError) as e:
+    print(f"Redis connection failed: {e}, using memory backend")
+    # Fallback to memory broker if Redis is not available
+    CELERY_BROKER_URL = "memory://"
+    CELERY_RESULT_BACKEND = "rpc://"
+
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 # Use Django database as result backend and run tasks synchronously for development
@@ -253,12 +266,27 @@ STRIPE_PRO_YEARLY_PRODUCT_ID = os.getenv("STRIPE_PRO_YEARLY_PRODUCT_ID")
 
 
 # REDIS CACHE
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://localhost:6379/1",  # Update with your Redis URL
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
+# Use Redis if available, otherwise fall back to local memory cache
+try:
+    import redis
+    redis_client = redis.Redis(host='localhost', port=6379, db=1, socket_connect_timeout=5)
+    redis_client.ping()  # Test connection
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://localhost:6379/1",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+        }
     }
-}
+    print("Connected to Redis cache successfully")
+except (ImportError, redis.ConnectionError) as e:
+    print(f"Redis cache connection failed: {e}, using local memory cache")
+    # Fallback to local memory cache if Redis is not available
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "unique-snowflake",
+        }
+    }

@@ -128,9 +128,53 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        text-align: center;
         min-height: 2.75rem;
         min-width: 6rem;
         background-color: white;
+        text-decoration: none;
+    }
+
+    /* Button Text Centering */
+    .btn-secondary {
+        cursor: pointer;
+        background-color: rgb(249 250 251);
+        color: rgb(55 65 81);
+        border: 1px solid rgb(209 213 219);
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        text-decoration: none;
+        transition: all 150ms ease;
+    }
+
+    .btn-secondary:hover {
+        background-color: rgb(243 244 246);
+        border-color: rgb(156 163 175);
+    }
+
+    .btn-primary {
+        cursor: pointer;
+        background-color: rgb(59 130 246);
+        color: white;
+        border: 1px solid rgb(37 99 235);
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        text-decoration: none;
+        transition: all 150ms ease;
+    }
+
+    .btn-primary:hover {
+        background-color: rgb(37 99 235);
     }
 
     /* Button Sizes */
