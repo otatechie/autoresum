@@ -5,6 +5,7 @@ import AuthService from '../services/AuthService';
 import { toast } from '../utils/notifications';
 import { SEO } from '../components/SEO';
 import { getApiUrl } from '../config/environment';
+import { generateResumePDF } from '../utils/pdfGenerator';
 
 export function DashboardPage() {
     const { user, loading: authLoading } = useAuth();
@@ -35,15 +36,12 @@ export function DashboardPage() {
                 });
 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Response error:', errorText);
                     throw new Error(`Failed to fetch resumes: ${response.status} ${response.statusText}`);
                 }
 
                 const data = await response.json();
                 setResumes(Array.isArray(data) ? data : []);
             } catch (err) {
-                console.error('Error fetching resumes:', err);
                 setError(err.message || 'Failed to fetch resumes. Please try again later.');
                 toast.error(err.message || 'Failed to fetch resumes. Please try again later.');
             } finally {
@@ -60,6 +58,18 @@ export function DashboardPage() {
     }, [user, authLoading]);
 
 
+
+    const handleDownload = (resume) => {
+        generateResumePDF(
+            resume,
+            () => {
+                toast.success('Resume downloaded successfully!');
+            },
+            () => {
+                toast.error('Failed to generate PDF. Please try again.');
+            }
+        );
+    };
 
     if (isLoading) {
         return (
@@ -360,13 +370,12 @@ export function DashboardPage() {
                                                  
                                                     View
                                                 </Link>
-                                                <Link
-                                                    to={`/resume/${resume.id}`}
+                                                <button
+                                                    onClick={() => handleDownload(resume)}
                                                     className="btn-primary flex-1"
                                                 >
-                                                    
                                                     Download
-                                                </Link>
+                                                </button>
                                             </div>
                                         </div>
                                     ))}

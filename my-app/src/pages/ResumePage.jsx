@@ -5,6 +5,7 @@ import AuthService from '../services/AuthService';
 import { toast } from '../utils/notifications';
 import { SEO } from '../components/SEO';
 import { getApiUrl } from '../config/environment';
+import { generateResumePDF, formatResumeContent } from '../utils/pdfGenerator';
 
 export function ResumePage() {
     const { user, loading: authLoading } = useAuth();
@@ -50,15 +51,12 @@ export function ResumePage() {
                 });
 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Response error:', errorText);
                     throw new Error(`Failed to fetch resumes: ${response.status} ${response.statusText}`);
                 }
 
                 const data = await response.json();
                 setResumes(Array.isArray(data) ? data : []);
             } catch (err) {
-                console.error('Error fetching resumes:', err);
                 setError(err.message || 'Failed to fetch resumes. Please try again later.');
                 toast.error(err.message || 'Failed to fetch resumes. Please try again later.');
             } finally {
@@ -76,10 +74,10 @@ export function ResumePage() {
 
 
 
-    const handlePrint = (resume) => {
+        const handlePrint = (resume) => {
         // Create a new window for printing
         const printWindow = window.open('', '_blank');
-
+        
         // Create the HTML content for printing
         const printContent = `
             <!DOCTYPE html>
@@ -196,11 +194,11 @@ export function ResumePage() {
             </body>
             </html>
         `;
-
+        
         // Write the content to the new window
         printWindow.document.write(printContent);
         printWindow.document.close();
-
+        
         // Wait for content to load, then trigger print
         printWindow.onload = () => {
             printWindow.focus();
@@ -211,120 +209,16 @@ export function ResumePage() {
         };
     };
 
-    const formatResumeContent = (resume) => {
-        const sections = [];
-
-        // Personal Information
-        if (resume.first_name || resume.last_name || resume.email || resume.phone) {
-            sections.push({
-                id: 1,
-                title: 'Personal Information',
-                content: `${resume.first_name || ''} ${resume.last_name || ''}\n${resume.email || ''}\n${resume.phone || ''}`,
-                isExpanded: true
-            });
-        }
-
-        // Professional Summary
-        if (resume.resume_summary) {
-            sections.push({
-                id: 2,
-                title: 'Professional Summary',
-                content: resume.resume_summary,
-                isExpanded: true
-            });
-        }
-
-        // Work Experience
-        if (resume.work_experience) {
-            let workContent = '';
-            if (typeof resume.work_experience === 'string') {
-                workContent = resume.work_experience;
-            } else if (Array.isArray(resume.work_experience)) {
-                workContent = resume.work_experience.map(job => {
-                    if (typeof job === 'string') return job;
-                    return Object.entries(job).map(([key, value]) => `${key}: ${value}`).join('\n');
-                }).join('\n\n');
-            } else if (typeof resume.work_experience === 'object') {
-                workContent = Object.entries(resume.work_experience).map(([key, value]) => `${key}: ${value}`).join('\n');
+        const handleDownload = (resume) => {
+        generateResumePDF(
+            resume,
+            () => {
+                toast.success('Resume downloaded successfully!');
+            },
+            () => {
+                toast.error('Failed to generate PDF. Please try again.');
             }
-
-            if (workContent) {
-                sections.push({
-                    id: 3,
-                    title: 'Work Experience',
-                    content: workContent,
-                    isExpanded: true
-                });
-            }
-        }
-
-        // Education
-        if (resume.education) {
-            let educationContent = '';
-            if (typeof resume.education === 'string') {
-                educationContent = resume.education;
-            } else if (Array.isArray(resume.education)) {
-                educationContent = resume.education.map(edu => {
-                    if (typeof edu === 'string') return edu;
-                    return Object.entries(edu).map(([key, value]) => `${key}: ${value}`).join('\n');
-                }).join('\n\n');
-            } else if (typeof resume.education === 'object') {
-                educationContent = Object.entries(resume.education).map(([key, value]) => `${key}: ${value}`).join('\n');
-            }
-
-            if (educationContent) {
-                sections.push({
-                    id: 4,
-                    title: 'Education',
-                    content: educationContent,
-                    isExpanded: true
-                });
-            }
-        }
-
-        // Skills
-        if (resume.skills) {
-            let skillsContent = '';
-            if (typeof resume.skills === 'string') {
-                skillsContent = resume.skills;
-            } else if (Array.isArray(resume.skills)) {
-                skillsContent = resume.skills.join(', ');
-            } else if (typeof resume.skills === 'object') {
-                skillsContent = Object.entries(resume.skills).map(([key, value]) => `${key}: ${value}`).join('\n');
-            }
-
-            if (skillsContent) {
-                sections.push({
-                    id: 5,
-                    title: 'Skills',
-                    content: skillsContent,
-                    isExpanded: true
-                });
-            }
-        }
-
-        // Languages
-        if (resume.languages) {
-            let languagesContent = '';
-            if (typeof resume.languages === 'string') {
-                languagesContent = resume.languages;
-            } else if (Array.isArray(resume.languages)) {
-                languagesContent = resume.languages.join(', ');
-            } else if (typeof resume.languages === 'object') {
-                languagesContent = Object.entries(resume.languages).map(([key, value]) => `${key}: ${value}`).join('\n');
-            }
-
-            if (languagesContent) {
-                sections.push({
-                    id: 6,
-                    title: 'Languages',
-                    content: languagesContent,
-                    isExpanded: true
-                });
-            }
-        }
-
-        return sections;
+        );
     };
 
     if (isLoading) {
@@ -595,7 +489,7 @@ export function ResumePage() {
                                                                             </button>
                                                                             <button
                                                                                 onClick={() => {
-                                                                                    toast.info('Download functionality coming soon!');
+                                                                                    handleDownload(resume);
                                                                                     setOpenActionsMenu(null);
                                                                                 }}
                                                                                 className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 cursor-pointer"
@@ -689,6 +583,7 @@ export function ResumePage() {
                                                 Print
                                             </button>
                                             <button
+                                                onClick={() => handleDownload(selectedResume)}
                                                 className="btn-primary inline-flex items-center gap-2"
                                             >
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
