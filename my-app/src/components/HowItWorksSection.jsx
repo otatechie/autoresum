@@ -50,7 +50,7 @@ export function HowItWorksSection() {
 
                     <div className="relative mt-12 lg:mt-20">
                         <div className="absolute inset-x-0 hidden xl:px-44 top-2 md:block md:px-20 lg:px-28" style={{ zIndex: 0 }}>
-                            <img alt="" loading="lazy" width="1000" height="500" decoding="async"
+                            <img alt="Decorative background pattern" loading="lazy" width="1000" height="500" decoding="async"
                                 className="w-full opacity-30 dark:opacity-40" style={{ color: "transparent" }}
                                 src="https://cdn.rareblocks.xyz/collection/celebration/images/steps/2/curved-dotted-line.svg" />
                         </div>

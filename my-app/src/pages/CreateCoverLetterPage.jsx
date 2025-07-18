@@ -96,7 +96,7 @@ export function CreateCoverLetterPage() {
             // Check if response is valid
             const contentType = generateResponse.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
-                console.error('Non-JSON response received:', await generateResponse.text());
+
                 throw new Error('Server returned a non-JSON response. Please check if the server is running correctly.');
             }
 
@@ -104,7 +104,7 @@ export function CreateCoverLetterPage() {
             const responseData = await generateResponse.json();
 
             if (!generateResponse.ok) {
-                console.error('API Error Response:', responseData);
+
                 
                 // Handle quota exceeded error specifically
                 if (responseData.error_type === 'quota_exceeded') {
@@ -133,7 +133,7 @@ export function CreateCoverLetterPage() {
                     throw new Error('Cover letter generation timed out. Please try again.');
                 }
                 try {
-                    console.log('Polling for cover letter status...');
+
                     const pollResponse = await fetch(getApiUrl(`cover-letter/generated/${cover_letter_task_id}`), {
                         headers: {
                             'Authorization': `Bearer ${token}`
@@ -143,12 +143,12 @@ export function CreateCoverLetterPage() {
                     // Check if poll response is valid JSON
                     const pollContentType = pollResponse.headers.get('content-type');
                     if (!pollContentType || !pollContentType.includes('application/json')) {
-                        console.error('Non-JSON poll response received:', await pollResponse.text());
+
                         throw new Error('Server returned a non-JSON response for poll request');
                     }
 
                     const pollData = await pollResponse.json();
-                    console.log('Poll response:', pollData);
+
 
                     if (!pollResponse.ok) {
                         clearInterval(pollInterval);
@@ -157,7 +157,7 @@ export function CreateCoverLetterPage() {
 
                     if (pollData.status === 'Success') {
                         clearInterval(pollInterval);
-                        console.log('Cover letter data received:', pollData.cover_letter);
+
                         setGeneratedCoverLetter(pollData.cover_letter);
                         setGenerationStatus('success');
                         toast.success('Cover letter generated successfully!');
@@ -165,9 +165,9 @@ export function CreateCoverLetterPage() {
                         clearInterval(pollInterval);
                         setGenerationStatus('error');
                         throw new Error(pollData.message || 'Cover letter generation failed');
-                    } else if (pollData.status === 'Pending') {
-                        console.log('Task still pending, continuing to poll...');
-                    }
+                                          } else if (pollData.status === 'Pending') {
+                          // Task still pending, continue polling
+                      }
                 } catch (pollError) {
                     clearInterval(pollInterval);
                     setGenerationStatus('error');
@@ -176,7 +176,7 @@ export function CreateCoverLetterPage() {
             }, 2000);
 
         } catch (error) {
-            console.error('Error generating cover letter:', error);
+
             toast.error(error.message || 'Failed to generate cover letter. Please try again.');
             setError(error.message || 'Failed to generate cover letter. Please try again.');
             setGenerationStatus('error');
@@ -210,20 +210,11 @@ export function CreateCoverLetterPage() {
             
             {/* Header */}
             <div className="bg-white dark:bg-gray-800 p-8 border-b border-gray-200 dark:border-gray-700">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-lg">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create Cover Letter</h1>
-                            <p className="mt-2 text-md text-gray-600 dark:text-gray-300">
-                                Fill in your details to generate a professional cover letter with AI
-                            </p>
-                        </div>
-                    </div>
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create Cover Letter</h1>
+                    <p className="mt-2 text-md text-gray-600 dark:text-gray-300">
+                        Fill in your details to generate a professional cover letter with AI
+                    </p>
                 </div>
             </div>
 

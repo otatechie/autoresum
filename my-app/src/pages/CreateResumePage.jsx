@@ -9,6 +9,7 @@ import AuthService from '../services/AuthService';
 import { toast } from '../utils/notifications';
 import { getApiUrl } from '../config/environment';
 import { SEO } from '../components/SEO';
+import { SafeHTML } from '../utils/sanitization';
 
 export function CreateResumePage() {
     const navigate = useNavigate();
@@ -159,7 +160,7 @@ export function CreateResumePage() {
             // Check if response is valid
             const contentType = generateResponse.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
-                console.error('Non-JSON response received:', await generateResponse.text());
+
                 throw new Error('Server returned a non-JSON response. Please check if the server is running correctly.');
             }
 
@@ -167,7 +168,7 @@ export function CreateResumePage() {
             const responseData = await generateResponse.json();
 
             if (!generateResponse.ok) {
-                console.error('API Error Response:', responseData);
+
                 
                 // Handle quota exceeded error specifically
                 if (responseData.error_type === 'quota_exceeded') {
@@ -196,7 +197,7 @@ export function CreateResumePage() {
                     // Check if poll response is valid JSON
                     const pollContentType = pollResponse.headers.get('content-type');
                     if (!pollContentType || !pollContentType.includes('application/json')) {
-                        console.error('Non-JSON poll response received:', await pollResponse.text());
+
                         throw new Error('Server returned a non-JSON response for poll request');
                     }
 
@@ -225,7 +226,7 @@ export function CreateResumePage() {
             }, 2000);
 
         } catch (error) {
-            console.error('Error generating resume:', error);
+
             toast.error(error.message || 'Failed to generate resume. Please try again.');
             setError(error.message || 'Failed to generate resume. Please try again.');
             setGenerationStatus('error');
@@ -259,20 +260,11 @@ export function CreateResumePage() {
             
             {/* Header */}
             <div className="bg-white dark:bg-gray-800 p-8 border-b border-gray-200 dark:border-gray-700">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create Resume</h1>
-                            <p className="mt-2 text-md text-gray-600 dark:text-gray-300">
-                                Fill in your details to generate a professional resume with AI
-                            </p>
-                        </div>
-                    </div>
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create Resume</h1>
+                    <p className="mt-2 text-md text-gray-600 dark:text-gray-300">
+                        Fill in your details to generate a professional resume with AI
+                    </p>
                 </div>
             </div>
 
@@ -560,28 +552,28 @@ export function CreateResumePage() {
                                     {generatedResume.work_experience && (
                                         <div className="mb-6">
                                             <h4 className="text-lg font-medium mb-2">Work Experience</h4>
-                                            <div dangerouslySetInnerHTML={{ __html: generatedResume.work_experience }} />
+                                            <SafeHTML content={generatedResume.work_experience} />
                                         </div>
                                     )}
 
                                     {generatedResume.education && (
                                         <div className="mb-6">
                                             <h4 className="text-lg font-medium mb-2">Education</h4>
-                                            <div dangerouslySetInnerHTML={{ __html: generatedResume.education }} />
+                                            <SafeHTML content={generatedResume.education} />
                                         </div>
                                     )}
 
                                     {generatedResume.skills && (
                                         <div className="mb-6">
                                             <h4 className="text-lg font-medium mb-2">Skills</h4>
-                                            <div dangerouslySetInnerHTML={{ __html: generatedResume.skills }} />
+                                            <SafeHTML content={generatedResume.skills} />
                                         </div>
                                     )}
 
                                     {generatedResume.languages && (
                                         <div className="mb-6">
                                             <h4 className="text-lg font-medium mb-2">Languages</h4>
-                                            <div dangerouslySetInnerHTML={{ __html: generatedResume.languages }} />
+                                            <SafeHTML content={generatedResume.languages} />
                                         </div>
                                     )}
                                 </div>

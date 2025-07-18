@@ -236,9 +236,9 @@ try:
     redis_client.ping()  # Test connection
     CELERY_BROKER_URL = "redis://localhost:6379/0"
     CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
-    print("Connected to Redis successfully")
+    pass
 except (ImportError, redis.ConnectionError) as e:
-    print(f"Redis connection failed: {e}, using memory backend")
+    pass
     # Fallback to memory broker if Redis is not available
     CELERY_BROKER_URL = "memory://"
     CELERY_RESULT_BACKEND = "rpc://"
@@ -280,9 +280,9 @@ try:
             },
         }
     }
-    print("Connected to Redis cache successfully")
+    pass
 except (ImportError, redis.ConnectionError) as e:
-    print(f"Redis cache connection failed: {e}, using local memory cache")
+    pass
     # Fallback to local memory cache if Redis is not available
     CACHES = {
         "default": {

@@ -450,9 +450,6 @@ export function ResumePage() {
 
     const handleAIUpdate = async (apiData) => {
         const token = authService.getToken();
-        
-        console.log('Starting AI update with data:', apiData);
-        
         // Step 1: Start AI generation
         const generateResponse = await fetch(getApiUrl(`resume/generate/update/${selectedResume.id}`), {
             method: 'POST',
@@ -466,14 +463,14 @@ export function ResumePage() {
 
         if (!generateResponse.ok) {
             const errorText = await generateResponse.text();
-            console.log('AI generation error:', errorText);
+
             throw new Error(`Failed to start AI update: ${generateResponse.status} ${generateResponse.statusText}`);
         }
 
         const generateData = await generateResponse.json();
         const resumeContentId = generateData.resume_content_id;
         
-        console.log('AI generation started, content ID:', resumeContentId);
+
         toast.info('AI is updating your resume... This may take a moment.');
 
         // Step 2: Poll for completion
@@ -497,7 +494,7 @@ export function ResumePage() {
             }
 
             const statusData = await statusResponse.json();
-            console.log('AI update status:', statusData);
+
 
             if (statusData.status === 'Success') {
                 // AI update completed successfully
@@ -559,25 +556,18 @@ export function ResumePage() {
             />
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
                 <div className="bg-white dark:bg-gray-800 p-8 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
+                    <div>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Resumes</h1>
+                            {resumes.length > 0 && (
+                                <span className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
+                                    {resumes.length} {resumes.length === 1 ? 'resume' : 'resumes'}
+                                </span>
+                            )}
                         </div>
-                        <div>
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Resumes</h1>
-                                {resumes.length > 0 && (
-                                    <span className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
-                                        {resumes.length} {resumes.length === 1 ? 'resume' : 'resumes'}
-                                    </span>
-                                )}
-                            </div>
-                            <p className="mt-2 text-md text-gray-600 dark:text-gray-300">
-                                {selectedResume ? `Viewing: ${selectedResume.first_name} ${selectedResume.last_name}` : 'Manage and customize your resumes'}
-                            </p>
-                        </div>
+                        <p className="mt-2 text-md text-gray-600 dark:text-gray-300">
+                            {selectedResume ? `Viewing: ${selectedResume.first_name} ${selectedResume.last_name}` : 'Manage and customize your resumes'}
+                        </p>
                     </div>
                 </div>
 
@@ -585,9 +575,12 @@ export function ResumePage() {
                     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md">
                         {/* Tabs */}
                         <div className="px-8 border-b border-gray-200 dark:border-gray-700">
-                            <nav className="flex space-x-8">
+                            <nav className="flex space-x-8" role="tablist" aria-label="Resume management tabs">
                                 <button
                                     onClick={() => setActiveTab('list')}
+                                    aria-label="View all resumes"
+                                    aria-selected={activeTab === 'list'}
+                                    role="tab"
                                     className={`${activeTab === 'list'
                                         ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                                         : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
@@ -602,13 +595,16 @@ export function ResumePage() {
                                 </button>
                                 {selectedResume && (
                                     <>
-                                        <button
-                                            onClick={() => setActiveTab('preview')}
-                                            className={`${activeTab === 'preview'
-                                                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                                                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
-                                                } whitespace-nowrap py-6 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer`}
-                                        >
+                                                                        <button
+                                    onClick={() => setActiveTab('preview')}
+                                    aria-label="Preview selected resume"
+                                    aria-selected={activeTab === 'preview'}
+                                    role="tab"
+                                    className={`${activeTab === 'preview'
+                                        ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                                        } whitespace-nowrap py-6 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer`}
+                                >
                                             <div className="flex items-center gap-2">
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -617,13 +613,16 @@ export function ResumePage() {
                                                 Preview
                                             </div>
                                         </button>
-                                        <button
-                                            onClick={() => setActiveTab('edit')}
-                                            className={`${activeTab === 'edit'
-                                                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                                                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
-                                                } whitespace-nowrap py-6 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer`}
-                                        >
+                                                                        <button
+                                    onClick={() => setActiveTab('edit')}
+                                    aria-label="Edit selected resume"
+                                    aria-selected={activeTab === 'edit'}
+                                    role="tab"
+                                    className={`${activeTab === 'edit'
+                                        ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                                        } whitespace-nowrap py-6 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer`}
+                                >
                                             <div className="flex items-center gap-2">
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -744,7 +743,16 @@ export function ResumePage() {
                                                             <div className="relative actions-menu">
                                                                 <button
                                                                     onClick={() => setOpenActionsMenu(openActionsMenu === resume.id ? null : resume.id)}
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === 'Enter' || e.key === ' ') {
+                                                                            e.preventDefault();
+                                                                            setOpenActionsMenu(openActionsMenu === resume.id ? null : resume.id);
+                                                                        }
+                                                                    }}
                                                                     className="btn-secondary btn-sm inline-flex items-center gap-2"
+                                                                    aria-label="More actions"
+                                                                    aria-expanded={openActionsMenu === resume.id}
+                                                                    aria-haspopup="true"
                                                                 >
                                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
@@ -753,7 +761,11 @@ export function ResumePage() {
                                                                 </button>
 
                                                                 {openActionsMenu === resume.id && (
-                                                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10">
+                                                                    <div 
+                                                                        className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10"
+                                                                        role="menu"
+                                                                        aria-label="Resume actions"
+                                                                    >
                                                                         <div className="py-1">
                                                                             <button
                                                                                 onClick={() => {
@@ -761,7 +773,14 @@ export function ResumePage() {
                                                                                     setActiveTab('preview');
                                                                                     setOpenActionsMenu(null);
                                                                                 }}
+                                                                                onKeyDown={(e) => {
+                                                                                    if (e.key === 'Escape') {
+                                                                                        setOpenActionsMenu(null);
+                                                                                    }
+                                                                                }}
                                                                                 className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 cursor-pointer"
+                                                                                role="menuitem"
+                                                                                tabIndex={0}
                                                                             >
                                                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

@@ -447,7 +447,7 @@ export function DashboardLayout({ children }) {
                 </div>
 
                 {/* Main content area */}
-                <main className="bg-gray-50 dark:bg-gray-900">
+                <main id="main-content" className="bg-gray-50 dark:bg-gray-900" role="main">
                     {children}
                 </main>
             </div>

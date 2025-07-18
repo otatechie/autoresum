@@ -5,16 +5,14 @@ export const SubscriptionPage = () => {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             {/* Header */}
-            <div className="bg-white dark:bg-gray-800 p-6 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                            Subscription Management
-                        </h1>
-                        <p className="mt-1 text-md text-gray-500 dark:text-gray-400">
-                            Manage your subscription and billing preferences
-                        </p>
-                    </div>
+            <div className="bg-white dark:bg-gray-800 p-8 border-b border-gray-200 dark:border-gray-700">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        Subscription Management
+                    </h1>
+                    <p className="mt-2 text-md text-gray-600 dark:text-gray-300">
+                        Manage your subscription and billing preferences
+                    </p>
                 </div>
             </div>
 
@@ -32,7 +30,7 @@ export const SubscriptionPage = () => {
                                 We're working on bringing you amazing subscription features. Stay tuned!
                             </p>
                             <div className="mt-6">
-                                <Link 
+                                <Link
                                     to="/dashboard"
                                     className="btn-primary"
                                 >

@@ -829,12 +829,12 @@ class PaymentDetailView(RetrieveAPIView):
             }
         
         # Add Stripe invoice URL if available
-        print("instance", instance.stripe_invoice_id)
+
         if instance.stripe_invoice_id:
             try:
                 import stripe
                 invoice = stripe.Invoice.retrieve(instance.stripe_invoice_id)
-                print(invoice)
+        
                 payment_data['invoice_pdf'] = invoice.invoice_pdf
                 payment_data['invoice_url'] = invoice.hosted_invoice_url
             except Exception as e:

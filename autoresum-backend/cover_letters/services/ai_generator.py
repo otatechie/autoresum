@@ -16,19 +16,17 @@ class AICoverLetterGenerator:
         Generate cover letter content based on user input
         For development, returns mock data instead of calling OpenAI
         """
-        print(f"AI Generator: Starting cover letter generation with data: {data}")
+
         try:
             if self.mock_mode:
-                print("AI Generator: Using mock mode")
                 result = self._generate_mock_content(data)
-                print(f"AI Generator: Mock content generated: {result}")
                 return result
                 
             # Real OpenAI implementation would go here
             raise NotImplementedError("OpenAI integration not implemented")
             
         except Exception as e:
-            print(f"AI Generator: Error generating cover letter: {e}")
+
             logger.error(f"Error generating cover letter: {e}")
             raise
             

@@ -1,4 +1,5 @@
 import DOMPurify from 'dompurify';
+import React from 'react';
 
 /**
  * Sanitize HTML content to prevent XSS attacks
@@ -111,4 +112,56 @@ export function sanitizeObject(obj) {
         }
     }
     return result;
-} 
+}
+
+/**
+ * Safely renders HTML content by stripping potentially dangerous tags and attributes
+ * @param {string} html - The HTML content to sanitize
+ * @returns {string} - Sanitized HTML content
+ */
+export const sanitizeHTML = (html) => {
+    if (!html || typeof html !== 'string') {
+        return '';
+    }
+
+    // Create a temporary div to parse the HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+
+    // Remove potentially dangerous tags
+    const dangerousTags = ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'select', 'textarea'];
+    dangerousTags.forEach(tag => {
+        const elements = tempDiv.getElementsByTagName(tag);
+        while (elements.length > 0) {
+            elements[0].parentNode.removeChild(elements[0]);
+        }
+    });
+
+    // Remove potentially dangerous attributes
+    const dangerousAttributes = ['onclick', 'onload', 'onerror', 'onmouseover', 'onfocus', 'onblur', 'onchange', 'onsubmit'];
+    const allElements = tempDiv.getElementsByTagName('*');
+    for (let i = 0; i < allElements.length; i++) {
+        const element = allElements[i];
+        dangerousAttributes.forEach(attr => {
+            if (element.hasAttribute(attr)) {
+                element.removeAttribute(attr);
+            }
+        });
+    }
+
+    return tempDiv.innerHTML;
+};
+
+/**
+ * Safely renders HTML content as a React component
+ * @param {string} html - The HTML content to render
+ * @returns {JSX.Element} - React element with sanitized content
+ */
+export const SafeHTML = ({ content, className = '', ...props }) => {
+    const sanitizedContent = sanitizeHTML(content);
+    return React.createElement('div', {
+        className,
+        dangerouslySetInnerHTML: { __html: sanitizedContent },
+        ...props
+    });
+}; 

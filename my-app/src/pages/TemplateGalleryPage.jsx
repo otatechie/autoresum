@@ -119,7 +119,7 @@ export const TemplateGalleryPage = () => {
             await mockApiService.downloadTemplate(template.id);
             toast.success(`Template "${template.name}" downloaded successfully!`);
         } catch (error) {
-            console.error('Download error:', error);
+
             toast.error(`Failed to download template "${template.name}". Please try again.`);
         } finally {
             setDownloadingTemplates(prev => {
@@ -134,7 +134,7 @@ export const TemplateGalleryPage = () => {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
                 {/* Header */}
-                <div className="bg-white dark:bg-gray-800 p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="bg-white dark:bg-gray-800 p-8 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Templates</h1>
@@ -146,7 +146,7 @@ export const TemplateGalleryPage = () => {
                 </div>
 
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                                            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {[...Array(6)].map((_, index) => (
                                 <div key={index} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 animate-pulse">
@@ -170,13 +170,15 @@ export const TemplateGalleryPage = () => {
                 keywords={['resume templates', 'CV templates', 'professional templates', 'ATS-friendly templates', 'job application templates']}
             />
             {/* Header */}
-            <div className="bg-white dark:bg-gray-800 p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 p-8 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Templates</h1>
-                        <p className="mt-1 text-md text-gray-500 dark:text-gray-400">
-                            Browse and download professional resume templates
-                        </p>
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Templates</h1>
+                            <p className="mt-2 text-md text-gray-600 dark:text-gray-300">
+                                Browse and download professional resume templates
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -184,7 +186,7 @@ export const TemplateGalleryPage = () => {
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
                 <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md">
                     {/* Search and Filters */}
-                    <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <div className="p-8 border-b border-gray-200 dark:border-gray-700">
                         <div className="flex flex-col md:flex-row gap-3">
                             <div className="flex-1">
                                 <div className="relative">
@@ -228,7 +230,7 @@ export const TemplateGalleryPage = () => {
 
                     {/* Featured Templates */}
                     {featuredTemplates.length > 0 && (
-                        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                        <div className="p-8 border-b border-gray-200 dark:border-gray-700">
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Featured Templates</h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {featuredTemplates.map(template => (
@@ -285,7 +287,7 @@ export const TemplateGalleryPage = () => {
                     )}
 
                     {/* All Templates */}
-                    <div className="p-6">
+                    <div className="p-8">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">All Templates</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {otherTemplates.map(template => (
@@ -368,7 +370,7 @@ export const TemplateGalleryPage = () => {
                                 </svg>
                             </button>
                         </div>
-                        <div className="p-6">
+                        <div className="p-8">
                             <div className="flex items-center justify-between mb-3">
                                 <div>
                                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">

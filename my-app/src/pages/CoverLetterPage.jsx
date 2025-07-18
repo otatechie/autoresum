@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import { TextInput, TextAreaInput } from '../components/FormComponents';
 import { useAuth } from '../hooks/useAuth';
-import AuthService from '../services/AuthService';
 import { toast } from '../utils/notifications';
-import { getApiUrl } from '../config/environment';
 import { SEO } from '../components/SEO';
 
 // --- MOCK DATA FOR COVER LETTERS ---
@@ -44,9 +41,7 @@ const mockCoverLetters = [
 ];
 
 export const CoverLetterPage = () => {
-    const navigate = useNavigate();
     const { user, loading: authLoading } = useAuth();
-    const authService = new AuthService();
 
     // --- State ---
     const [coverLetters, setCoverLetters] = useState([]); // List of cover letters
@@ -55,6 +50,7 @@ export const CoverLetterPage = () => {
     const [activeTab, setActiveTab] = useState('list'); // 'list' | 'preview' | 'edit'
     const [selectedCoverLetter, setSelectedCoverLetter] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [openActionsMenu, setOpenActionsMenu] = useState(null);
     const [formData, setFormData] = useState({
         first_name: '',
         last_name: '',
@@ -66,8 +62,18 @@ export const CoverLetterPage = () => {
         job_description: '',
         reason_for_applying: '',
     });
-    const [generatedCoverLetter, setGeneratedCoverLetter] = useState(null);
-    const [generationStatus, setGenerationStatus] = useState('idle');
+
+    // Close actions menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (openActionsMenu && !event.target.closest('.actions-menu')) {
+                setOpenActionsMenu(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [openActionsMenu]);
 
     // --- Simulate fetching cover letters ---
     useEffect(() => {
@@ -199,40 +205,36 @@ export const CoverLetterPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <SEO
+            <SEO 
                 title="Cover Letters"
                 description="View and manage all your cover letters. Create, edit, and download professional cover letters."
                 keywords={['cover letters', 'cover letter management', 'view cover letters', 'download cover letters']}
             />
             <div className="bg-white dark:bg-gray-800 p-8 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-lg">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path>
-                        </svg>
+                <div>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Cover Letters</h1>
+                        {coverLetters.length > 0 && (
+                            <span className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">
+                                {coverLetters.length} {coverLetters.length === 1 ? 'cover letter' : 'cover letters'}
+                            </span>
+                        )}
                     </div>
-                    <div>
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Cover Letters</h1>
-                            {coverLetters.length > 0 && (
-                                <span className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">
-                                    {coverLetters.length} {coverLetters.length === 1 ? 'cover letter' : 'cover letters'}
-                                </span>
-                            )}
-                        </div>
-                        <p className="mt-2 text-md text-gray-600 dark:text-gray-300">
-                            {selectedCoverLetter ? `Viewing: ${selectedCoverLetter.first_name} ${selectedCoverLetter.last_name}` : 'Manage and customize your cover letters'}
-                        </p>
-                    </div>
+                    <p className="mt-2 text-md text-gray-600 dark:text-gray-300">
+                        {selectedCoverLetter ? `Viewing: ${selectedCoverLetter.first_name} ${selectedCoverLetter.last_name}` : 'Manage and customize your cover letters'}
+                    </p>
                 </div>
             </div>
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
                 <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md">
                     {/* Tabs */}
                     <div className="px-8 border-b border-gray-200 dark:border-gray-700">
-                        <nav className="flex space-x-8">
+                        <nav className="flex space-x-8" role="tablist" aria-label="Cover letter management tabs">
                             <button
                                 onClick={() => setActiveTab('list')}
+                                aria-label="View all cover letters"
+                                aria-selected={activeTab === 'list'}
+                                role="tab"
                                 className={`${activeTab === 'list'
                                     ? 'border-green-500 text-green-600 dark:text-green-400'
                                     : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
@@ -247,13 +249,16 @@ export const CoverLetterPage = () => {
                             </button>
                             {selectedCoverLetter && (
                                 <>
-                                    <button
-                                        onClick={() => setActiveTab('preview')}
-                                        className={`${activeTab === 'preview'
-                                            ? 'border-green-500 text-green-600 dark:text-green-400'
-                                            : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
-                                            } whitespace-nowrap py-6 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer`}
-                                    >
+                                                                <button
+                                onClick={() => setActiveTab('preview')}
+                                aria-label="Preview selected cover letter"
+                                aria-selected={activeTab === 'preview'}
+                                role="tab"
+                                className={`${activeTab === 'preview'
+                                    ? 'border-green-500 text-green-600 dark:text-green-400'
+                                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                                    } whitespace-nowrap py-6 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer`}
+                            >
                                         <div className="flex items-center gap-2">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -262,13 +267,16 @@ export const CoverLetterPage = () => {
                                             Preview
                                         </div>
                                     </button>
-                                    <button
-                                        onClick={() => setActiveTab('edit')}
-                                        className={`${activeTab === 'edit'
-                                            ? 'border-green-500 text-green-600 dark:text-green-400'
-                                            : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
-                                            } whitespace-nowrap py-6 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer`}
-                                    >
+                                                                <button
+                                onClick={() => setActiveTab('edit')}
+                                aria-label="Edit selected cover letter"
+                                aria-selected={activeTab === 'edit'}
+                                role="tab"
+                                className={`${activeTab === 'edit'
+                                    ? 'border-green-500 text-green-600 dark:text-green-400'
+                                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                                    } whitespace-nowrap py-6 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer`}
+                            >
                                         <div className="flex items-center gap-2">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -289,11 +297,30 @@ export const CoverLetterPage = () => {
                                     <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
                                         Your Cover Letters
                                     </h2>
+                                    <div className="flex items-center space-x-3">
+                                        <form className="relative w-80" onSubmit={(e) => e.preventDefault()}>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search cover letters..."
+                                                    className="form-control pl-10"
+                                                />
+                                                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                </svg>
+                                            </div>
+                                        </form>
+                                        <select className="form-control w-40">
+                                            <option value="">All Status</option>
+                                            <option value="complete">Complete</option>
+                                            <option value="incomplete">In Progress</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 {error ? (
                                     <div className="rounded-xl bg-red-50 dark:bg-red-900/20 p-6 border border-red-200 dark:border-red-800">
                                         <div className="flex items-center">
-                                            <div className="flex-shrink-0">
+                                    <div className="flex-shrink-0">
                                                 <svg className="h-6 w-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
@@ -351,16 +378,6 @@ export const CoverLetterPage = () => {
                                                     </div>
                                                     <div className="flex items-center space-x-3">
                                                         <button
-                                                            onClick={() => handleSelectCoverLetter(cl)}
-                                                            className="btn-secondary btn-sm inline-flex items-center gap-2"
-                                                        >
-                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                            </svg>
-                                                            Preview
-                                                        </button>
-                                                        <button
                                                             onClick={() => handleEditCoverLetter(cl)}
                                                             className="btn-secondary btn-sm inline-flex items-center gap-2"
                                                         >
@@ -369,24 +386,118 @@ export const CoverLetterPage = () => {
                                                             </svg>
                                                             Edit
                                                         </button>
-                                                        <button
-                                                            onClick={() => handlePrint(cl)}
-                                                            className="btn-secondary btn-sm inline-flex items-center gap-2"
-                                                        >
-                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                                                            </svg>
-                                                            Print
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDownload(cl)}
-                                                            className="btn-primary btn-sm inline-flex items-center gap-2"
-                                                        >
-                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                            </svg>
-                                                            Download
-                                                        </button>
+                                                        <div className="relative actions-menu">
+                                                            <button
+                                                                onClick={() => setOpenActionsMenu(openActionsMenu === cl.id ? null : cl.id)}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                                        e.preventDefault();
+                                                                        setOpenActionsMenu(openActionsMenu === cl.id ? null : cl.id);
+                                                                    }
+                                                                }}
+                                                                className="btn-secondary btn-sm inline-flex items-center gap-2"
+                                                                aria-label="More actions"
+                                                                aria-expanded={openActionsMenu === cl.id}
+                                                                aria-haspopup="true"
+                                                            >
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                                </svg>
+                                                                Actions
+                                                            </button>
+
+                                                            {openActionsMenu === cl.id && (
+                                                                <div 
+                                                                    className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10"
+                                                                    role="menu"
+                                                                    aria-label="Cover letter actions"
+                                                                >
+                                                                    <div className="py-1">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                handleSelectCoverLetter(cl);
+                                                                                setOpenActionsMenu(null);
+                                                                            }}
+                                                                            onKeyDown={(e) => {
+                                                                                if (e.key === 'Escape') {
+                                                                                    setOpenActionsMenu(null);
+                                                                                }
+                                                                            }}
+                                                                            className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 cursor-pointer"
+                                                                            role="menuitem"
+                                                                            tabIndex={0}
+                                                                        >
+                                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                            </svg>
+                                                                            Preview
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                handleEditCoverLetter(cl);
+                                                                                setOpenActionsMenu(null);
+                                                                            }}
+                                                                            className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 cursor-pointer"
+                                                                        >
+                                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                            </svg>
+                                                                            Edit
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                handlePrint(cl);
+                                                                                setOpenActionsMenu(null);
+                                                                            }}
+                                                                            className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 cursor-pointer"
+                                                                        >
+                                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                                                            </svg>
+                                                                            Print
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                handleDownload(cl);
+                                                                                setOpenActionsMenu(null);
+                                                                            }}
+                                                                            className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 cursor-pointer"
+                                                                        >
+                                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                            </svg>
+                                                                            Download
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                toast.info('Share functionality coming soon!');
+                                                                                setOpenActionsMenu(null);
+                                                                            }}
+                                                                            className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 cursor-pointer"
+                                                                        >
+                                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                                                                            </svg>
+                                                                            Share
+                                                                        </button>
+                                                                        <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                toast.error('Delete functionality coming soon!');
+                                                                                setOpenActionsMenu(null);
+                                                                            }}
+                                                                            className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 cursor-pointer"
+                                                                        >
+                                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                            </svg>
+                                                                            Delete
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -439,7 +550,7 @@ export const CoverLetterPage = () => {
                                         >
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                            </svg>
+                                        </svg>
                                             Download
                                         </button>
                                     </div>
@@ -472,8 +583,8 @@ export const CoverLetterPage = () => {
                                     </p>
                                 </div>
                                 <form className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700" onSubmit={handleSubmit}>
-                                    {/* Personal Information */}
-                                    <div className="p-8">
+                            {/* Personal Information */}
+                            <div className="p-8">
                                         <div className="flex items-center gap-3 mb-6">
                                             <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
                                                 <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -482,45 +593,45 @@ export const CoverLetterPage = () => {
                                             </div>
                                             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Personal Information</h2>
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <TextInput
-                                                label="First Name"
-                                                id="first_name"
-                                                name="first_name"
-                                                value={formData.first_name}
-                                                onChange={handleInputChange}
-                                                required={true}
-                                            />
-                                            <TextInput
-                                                label="Last Name"
-                                                id="last_name"
-                                                name="last_name"
-                                                value={formData.last_name}
-                                                onChange={handleInputChange}
-                                                required={true}
-                                            />
-                                            <TextInput
-                                                label="Email Address"
-                                                id="email"
-                                                name="email"
-                                                type="email"
-                                                value={formData.email}
-                                                onChange={handleInputChange}
-                                                required={true}
-                                            />
-                                            <TextInput
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <TextInput
+                                        label="First Name"
+                                        id="first_name"
+                                        name="first_name"
+                                        value={formData.first_name}
+                                        onChange={handleInputChange}
+                                        required={true}
+                                    />
+                                    <TextInput
+                                        label="Last Name"
+                                        id="last_name"
+                                        name="last_name"
+                                        value={formData.last_name}
+                                        onChange={handleInputChange}
+                                        required={true}
+                                    />
+                                    <TextInput
+                                        label="Email Address"
+                                        id="email"
+                                        name="email"
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={handleInputChange}
+                                        required={true}
+                                    />
+                                    <TextInput
                                                 label="Phone Number"
-                                                id="phone_number"
-                                                name="phone_number"
-                                                type="tel"
-                                                value={formData.phone_number}
-                                                onChange={handleInputChange}
-                                                placeholder="+1234567890"
-                                            />
-                                        </div>
-                                    </div>
-                                    {/* Job Information */}
-                                    <div className="p-8">
+                                        id="phone_number"
+                                        name="phone_number"
+                                        type="tel"
+                                        value={formData.phone_number}
+                                        onChange={handleInputChange}
+                                        placeholder="+1234567890"
+                                    />
+                                </div>
+                            </div>
+                            {/* Job Information */}
+                            <div className="p-8">
                                         <div className="flex items-center gap-3 mb-6">
                                             <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900">
                                                 <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -530,46 +641,46 @@ export const CoverLetterPage = () => {
                                             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Job Information</h2>
                                         </div>
                                         <div className="space-y-4">
-                                            <TextInput
-                                                label="Company Name"
-                                                id="company_name"
-                                                name="company_name"
-                                                value={formData.company_name}
-                                                onChange={handleInputChange}
+                                    <TextInput
+                                        label="Company Name"
+                                        id="company_name"
+                                        name="company_name"
+                                        value={formData.company_name}
+                                        onChange={handleInputChange}
                                                 placeholder="e.g., Google, Microsoft"
-                                                required={true}
-                                            />
-                                            <TextInput
-                                                label="Job Title"
-                                                id="job_title"
-                                                name="job_title"
-                                                value={formData.job_title}
-                                                onChange={handleInputChange}
+                                        required={true}
+                                    />
+                                    <TextInput
+                                        label="Job Title"
+                                        id="job_title"
+                                        name="job_title"
+                                        value={formData.job_title}
+                                        onChange={handleInputChange}
                                                 placeholder="e.g., Software Engineer, Marketing Manager"
-                                                required={true}
-                                            />
-                                            <TextInput
-                                                label="Hiring Manager (Optional)"
-                                                id="hiring_manager"
-                                                name="hiring_manager"
-                                                value={formData.hiring_manager}
-                                                onChange={handleInputChange}
+                                        required={true}
+                                    />
+                                    <TextInput
+                                        label="Hiring Manager (Optional)"
+                                        id="hiring_manager"
+                                        name="hiring_manager"
+                                        value={formData.hiring_manager}
+                                        onChange={handleInputChange}
                                                 placeholder="e.g., John Smith"
-                                            />
-                                            <TextAreaInput
-                                                label="Job Description"
-                                                id="job_description"
-                                                name="job_description"
-                                                value={formData.job_description}
-                                                onChange={handleInputChange}
-                                                required={true}
-                                                rows={6}
-                                                placeholder="Paste the job description here..."
-                                            />
-                                        </div>
-                                    </div>
-                                    {/* Additional Information */}
-                                    <div className="p-8">
+                                    />
+                                    <TextAreaInput
+                                        label="Job Description"
+                                        id="job_description"
+                                        name="job_description"
+                                        value={formData.job_description}
+                                        onChange={handleInputChange}
+                                        required={true}
+                                        rows={6}
+                                        placeholder="Paste the job description here..."
+                                    />
+                                </div>
+                            </div>
+                            {/* Additional Information */}
+                            <div className="p-8">
                                         <div className="flex items-center gap-3 mb-6">
                                             <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900">
                                                 <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -579,41 +690,41 @@ export const CoverLetterPage = () => {
                                             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Additional Information</h2>
                                         </div>
                                         <div className="space-y-4">
-                                            <TextAreaInput
-                                                label="Why are you interested in this position? (Optional)"
+                                    <TextAreaInput
+                                        label="Why are you interested in this position? (Optional)"
                                                 id="reason_for_applying"
                                                 name="reason_for_applying"
                                                 value={formData.reason_for_applying}
-                                                onChange={handleInputChange}
-                                                rows={4}
-                                                placeholder="Explain why you're interested in this position and how your experience makes you a good fit..."
-                                            />
-                                        </div>
-                                    </div>
-                                    {/* Form Actions */}
+                                        onChange={handleInputChange}
+                                        rows={4}
+                                        placeholder="Explain why you're interested in this position and how your experience makes you a good fit..."
+                                    />
+                        </div>
+                    </div>
+                            {/* Form Actions */}
                                     <div className="p-8 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-b-xl">
-                                        <div className="flex justify-end">
-                                            <button
-                                                type="submit"
+                                <div className="flex justify-end">
+                                                <button
+                                        type="submit"
                                                 className={`btn-primary btn-lg inline-flex items-center gap-x-3 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 transition-transform'}`}
-                                                disabled={isSubmitting}
-                                            >
-                                                {isSubmitting ? (
-                                                    <>
-                                                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                        </svg>
+                                        disabled={isSubmitting}
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
                                                         Saving...
-                                                    </>
+                                            </>
                                                 ) : (
                                                     <>Save</>
                                                 )}
                                             </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
+                                </div>
+                        </div>
+                        </form>
+                        </div>
                         )}
                     </div>
                 </div>

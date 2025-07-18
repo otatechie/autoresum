@@ -101,18 +101,31 @@ export function DashboardPage() {
                 keywords={['dashboard', 'resume management', 'job applications', 'career tracking']}
             />
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <div className="bg-white dark:bg-gray-800 p-6 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-                            <p className="mt-1 text-md text-gray-500 dark:text-gray-400">
-                                Create, manage and track your resumes
-                            </p>
-                        </div>
+                <div className="bg-white dark:bg-gray-800 p-8 border-b border-gray-200 dark:border-gray-700">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+                        <p className="mt-2 text-md text-gray-600 dark:text-gray-300">
+                            Create, manage and track your resumes and cover letters
+                        </p>
                     </div>
                 </div>
 
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+                    {error && (
+                        <div className="mb-6 rounded-xl bg-red-50 dark:bg-red-900/20 p-6 border border-red-200 dark:border-red-800">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0">
+                                    <svg className="h-6 w-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div className="ml-3">
+                                    <h3 className="text-sm font-semibold text-red-800 dark:text-red-400">Error loading dashboard</h3>
+                                    <p className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md">
                         {/* Stats Section */}
                         <div className="p-8 border-b border-gray-200 dark:border-gray-700">
