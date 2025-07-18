@@ -178,7 +178,7 @@ export const DownloadPage = () => {
                                     <input
                                         type="text"
                                         placeholder="Search templates..."
-                                        className="w-full px-3 py-2 pl-9 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                        className="form-control pl-9"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                     />
@@ -189,7 +189,7 @@ export const DownloadPage = () => {
                             </div>
                             <div className="flex gap-2">
                                 <select
-                                    className="px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    className="form-control"
                                     value={selectedCategory}
                                     onChange={(e) => setSelectedCategory(e.target.value)}
                                 >
@@ -201,7 +201,7 @@ export const DownloadPage = () => {
                                     <option value="Technical">Technical</option>
                                 </select>
                                 <select
-                                    className="px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    className="form-control"
                                     value={sortBy}
                                     onChange={(e) => setSortBy(e.target.value)}
                                 >

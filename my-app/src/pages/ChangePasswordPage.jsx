@@ -146,7 +146,7 @@ export const ChangePasswordPage = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md">
                         <form onSubmit={handleSubmit} className="p-6">
                             <div className="space-y-6">
                                 <div>

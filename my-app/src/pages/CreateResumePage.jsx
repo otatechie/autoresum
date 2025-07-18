@@ -103,9 +103,7 @@ export function CreateResumePage() {
                 throw new Error('Not authenticated. Please log in.');
             }
 
-            // Debug: Log the current form data
-            console.log('Current form data:', formData);
-            console.log('Current user:', user);
+
 
             // Filter out empty fields and prepare data for API
             const apiData = {
@@ -140,8 +138,7 @@ export function CreateResumePage() {
                 apiData.certifications = formData.certifications;
             }
 
-            // Debug: Log the API data being sent
-            console.log('API data being sent:', apiData);
+
 
             // Validate required fields
             if (!apiData.first_name || !apiData.last_name || !apiData.email) {
@@ -168,7 +165,6 @@ export function CreateResumePage() {
 
             // Parse JSON response
             const responseData = await generateResponse.json();
-            console.log('API Response:', responseData);
 
             if (!generateResponse.ok) {
                 console.error('API Error Response:', responseData);
@@ -205,7 +201,6 @@ export function CreateResumePage() {
                     }
 
                     const pollData = await pollResponse.json();
-                    console.log('Poll Response:', pollData);
 
                     if (!pollResponse.ok) {
                         clearInterval(pollInterval);

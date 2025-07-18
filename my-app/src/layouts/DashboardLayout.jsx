@@ -4,9 +4,9 @@ import { useAuth } from '../hooks/useAuth';
 
 // Navigation item component
 function NavItem({ to, isActive, icon, children, onClick }) {
-    const baseClasses = "flex items-center gap-x-3 text-sm font-medium transition-all py-2 relative";
-    const activeClasses = "text-blue-600 dark:text-blue-500 bg-gray-50 dark:bg-gray-800/50 before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-blue-600 dark:before:bg-blue-600";
-    const inactiveClasses = "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white";
+    const baseClasses = "flex items-center gap-x-3 text-sm font-medium transition-all duration-300 py-2 px-2 rounded-full relative group";
+    const activeClasses = "text-blue-700 dark:text-blue-300 bg-gradient-to-r from-blue-50 via-blue-50 to-blue-50 dark:from-blue-900/20 dark:via-blue-800/20 dark:to-blue-900/20 shadow-sm border border-blue-100 dark:border-blue-700 transform scale-105";
+    const inactiveClasses = "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800/50 dark:hover:to-gray-700/50 hover:shadow-sm";
 
     return (
         <Link
@@ -14,11 +14,13 @@ function NavItem({ to, isActive, icon, children, onClick }) {
             className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}
             onClick={onClick}
         >
-            <div className="relative flex items-center gap-x-3 px-6">
-                <svg className={`h-6 w-6 ${isActive ? 'text-blue-600 dark:text-blue-600' : 'text-gray-400 dark:text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d={icon} />
-                </svg>
-                {children}
+            <div className="relative flex items-center gap-x-3">
+                <div className={`p-1 rounded-lg transition-all duration-300 ${isActive ? 'bg-blue-100 dark:bg-blue-800/50 shadow-sm' : 'bg-gray-100 dark:bg-gray-800 group-hover:bg-gray-200 dark:group-hover:bg-gray-700'}`}>
+                    <svg className={`h-4 w-4 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d={icon} />
+                    </svg>
+                </div>
+                <span className={`font-medium text-sm ${isActive ? 'text-blue-800 dark:text-blue-200' : ''}`}>{children}</span>
             </div>
         </Link>
     );
@@ -205,7 +207,7 @@ export function DashboardLayout({ children }) {
             )}
 
             {/* Desktop sidebar */}
-            <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
+            <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-60 lg:flex-col">
                 <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-6">
                     <div className="flex h-16 shrink-0 items-center">
                         <a href="/dashboard"> <img className="h-14 w-auto dark:invert" src="/images/logo.png" alt="Autoresum" /></a>
@@ -222,6 +224,7 @@ export function DashboardLayout({ children }) {
                             Create resume
                         </button>
                     </div>
+
 
                     <nav className="flex-1">
                         {navItems.map((item, idx) => (
@@ -243,12 +246,12 @@ export function DashboardLayout({ children }) {
             </div>
 
             {/* Main content */}
-            <div className="lg:pl-64">
+            <div className="lg:pl-60">
                 {/* Top navigation */}
-                <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center border-b border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm">
                     <button
                         type="button"
-                        className="border-r border-gray-200 dark:border-gray-700 px-4 text-gray-500 dark:text-gray-400 focus:outline-none lg:hidden"
+                        className="border-r border-gray-200 dark:border-gray-700 px-4 text-gray-500 dark:text-gray-400 focus:outline-none lg:hidden hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                         onClick={toggleSidebar}
                     >
                         <span className="sr-only">Open sidebar</span>
@@ -258,68 +261,89 @@ export function DashboardLayout({ children }) {
                     </button>
 
                     <div className="flex flex-1 justify-between px-4 sm:px-6 lg:px-8">
-                        <div className="flex flex-1 max-w-md">
-                            <form className="flex w-full md:ml-0" action="#" method="GET" role="search">
-                                <div className="relative flex flex-1">
-                                    <label htmlFor="search-input" className="sr-only">Search Autoresum</label>
-                                    <div className="relative w-full">
-                                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                            <svg className="h-5 w-5 text-gray-600 dark:text-gray-300" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
-                                            </svg>
-                                        </div>
-                                        <input
-                                            id="search-input"
-                                            type="search"
-                                            name="search"
-                                            placeholder="Search Autoresum"
-                                            className="h-10 w-full rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 pl-10 pr-4 text-sm text-gray-900 dark:text-white placeholder:text-gray-600 dark:placeholder:text-gray-300 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                        />
+                        <div className="flex flex-1 max-w-lg">
+                            <div className="relative flex flex-1">
+                                <label htmlFor="search-input" className="sr-only">Search Autoresum</label>
+                                <div className="relative w-full">
+                                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                                        <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
+                                        </svg>
                                     </div>
+                                    <input
+                                        id="search-input"
+                                        type="search"
+                                        name="search"
+                                        placeholder="Search resumes, templates..."
+                                        className="h-10 w-full rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 pl-12 pr-4 text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+                                    />
                                 </div>
-                            </form>
+                            </div>
                         </div>
 
                         <div className="ml-4 flex items-center gap-x-4 sm:gap-x-6">
-                            <Link to="/help" className="inline-flex items-center px-4 py-1.5 text-sm font-medium rounded-full text-gray-800 dark:text-white bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <Link to="/help" className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-full text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200">
+                                <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
                                 Help
                             </Link>
 
                             <button
                                 type="button"
-                                className="inline-flex items-center justify-center size-8 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                                className="relative inline-flex items-center justify-center size-10 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
                                 aria-label="View notifications"
                             >
                                 <span className="sr-only">View notifications</span>
-                                <svg className="size-4" viewBox="0 0 32 32">
+                                <svg className="size-5" viewBox="0 0 32 32">
                                     <path
                                         fill="currentColor"
                                         d="m30,8c0-3.31-2.69-6-6-6-2.3,0-4.29,1.3-5.3,3.2-1.15-.61-2.4-1-3.7-1.13v-1.07c0-.55-.45-1-1-1s-1,.45-1,1v1.05c-5.05.5-9,4.77-9,9.95v6.18c-1.16.41-2,1.51-2,2.82,0,1.65,1.35,3,3,3h4.1c.46,2.28,2.48,4,4.9,4s4.43-1.72,4.9-4h4.1c1.65,0,3-1.35,3-3,0-1.3-.84-2.4-2-2.82v-6.18c3.31,0,6-2.69,6-6Zm-6-4c2.21,0,4,1.79,4,4s-1.79,4-4,4-4-1.79-4-4,1.79-4,4-4Zm-10,24c-1.3,0-2.4-.84-2.82-2h5.63c-.41,1.16-1.51,2-2.82,2Zm9-4H5c-.55,0-1-.45-1-1s.45-1,1-1h18c.55,0,1,.45,1,1s-.45,1-1,1Zm-1-10v6H6v-6c0-4.41,3.59-8,8-8,1.44,0,2.84.39,4.07,1.12-.04.29-.07.58-.07.88,0,2.6,1.67,4.82,3.99,5.65,0,.12,0,.24,0,.35Z"
                                     />
                                 </svg>
+                                {/* Notification badge */}
+                                <span className="absolute -top-1 -right-1 size-3 bg-red-500 rounded-full border-2 border-white dark:border-gray-800"></span>
                             </button>
 
                             <div className="relative">
                                 <button
                                     ref={userBtnRef}
                                     type="button"
-                                    className="flex items-center gap-x-4 rounded-full focus:outline-none cursor-pointer"
+                                    className="flex items-center gap-x-3 rounded-full focus:outline-none cursor-pointer p-1 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
                                     onClick={toggleUserMenu}
                                     aria-expanded={isUserMenuOpen}
                                     aria-haspopup="true"
                                 >
                                     <span className="sr-only">Open user menu</span>
-                                    <div className="flex items-center justify-center size-8 rounded-full bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white text-sm font-medium">
+                                    <div className="flex items-center justify-center size-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white text-sm font-semibold shadow-sm">
                                         {getInitials(user?.first_name, user?.last_name)}
                                     </div>
+                                    <div className="hidden sm:block text-left">
+                                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                            {user?.first_name} 
+                                        </p>
+                                    </div>
+                                    <svg className="h-4 w-4 text-gray-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
                                 </button>
 
                                 {isUserMenuOpen && (
                                     <div
                                         ref={userMenuRef}
-                                        className="absolute right-0 z-10 mt-2.5 w-40 origin-top-right rounded-md bg-white dark:bg-gray-800 py-2 shadow-lg ring-1 ring-gray-900/5 dark:ring-gray-700/5"
+                                        className="absolute right-0 z-10 mt-3 w-56 origin-top-right rounded-xl bg-white dark:bg-gray-800 py-2 shadow-lg ring-1 ring-gray-900/5 dark:ring-gray-700/5 border border-gray-200 dark:border-gray-700"
                                         role="menu"
                                     >
+                                        {/* User info header */}
+                                        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                                {user?.first_name} {user?.last_name}
+                                            </p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                {user?.email}
+                                            </p>
+                                        </div>
+                                        
                                         {userMenuItems.map((item, index) => (
                                             <React.Fragment key={item.label}>
                                                 <UserMenuItem
@@ -329,7 +353,7 @@ export function DashboardLayout({ children }) {
                                                 >
                                                     {item.label}
                                                 </UserMenuItem>
-                                                {item.divider && index < userMenuItems.length - 1 && (
+                                                {index < userMenuItems.length - 1 && (
                                                     <div className="border-t border-gray-200 dark:border-gray-700 mx-2 my-1" />
                                                 )}
                                             </React.Fragment>
@@ -363,4 +387,4 @@ export function DashboardLayout({ children }) {
             </footer>
         </div>
     );
-} 
+}

@@ -174,7 +174,7 @@ export const TemplateGalleryPage = () => {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Templates</h1>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        <p className="mt-1 text-md text-gray-500 dark:text-gray-400">
                             Browse and download professional resume templates
                         </p>
                     </div>
@@ -182,7 +182,7 @@ export const TemplateGalleryPage = () => {
             </div>
 
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-                <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md">
                     {/* Search and Filters */}
                     <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                         <div className="flex flex-col md:flex-row gap-3">
@@ -191,7 +191,7 @@ export const TemplateGalleryPage = () => {
                                     <input
                                         type="text"
                                         placeholder="Search templates..."
-                                        className="w-full px-3 py-2 pl-9 text-sm rounded-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                        className="form-control pl-9"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                     />
@@ -202,7 +202,7 @@ export const TemplateGalleryPage = () => {
                             </div>
                             <div className="flex gap-2">
                                 <select
-                                    className="px-3 py-2 text-sm rounded-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    className="form-control"
                                     value={selectedCategory}
                                     onChange={(e) => setSelectedCategory(e.target.value)}
                                 >
@@ -214,7 +214,7 @@ export const TemplateGalleryPage = () => {
                                     <option value="Technical">Technical</option>
                                 </select>
                                 <select
-                                    className="px-3 py-2 text-sm rounded-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    className="form-control"
                                     value={sortBy}
                                     onChange={(e) => setSortBy(e.target.value)}
                                 >
@@ -266,7 +266,7 @@ export const TemplateGalleryPage = () => {
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
                                                     onClick={() => handlePreview(template)}
-                                                    className="btn btn-outline"
+                                                    className="btn-secondary"
                                                 >
                                                     Preview
                                                 </button>
@@ -320,7 +320,7 @@ export const TemplateGalleryPage = () => {
                                         <div className="flex items-center justify-end gap-2">
                                             <button
                                                 onClick={() => handlePreview(template)}
-                                                className="btn btn-outline"
+                                                className="btn-secondary"
                                                 disabled={downloadingTemplates.has(template.id)}
                                             >
                                                 Preview

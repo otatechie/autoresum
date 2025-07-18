@@ -61,8 +61,7 @@ export const CoverLetterPage = () => {
                 throw new Error('Not authenticated. Please log in.');
             }
 
-            // Debug: Log the current form data
-            console.log('Current form data:', formData);
+
 
             // Validate required fields
             const requiredFields = ['first_name', 'last_name', 'email', 'company_name', 'job_title', 'job_description'];
@@ -102,7 +101,6 @@ export const CoverLetterPage = () => {
 
             // Parse JSON response
             const responseData = await generateResponse.json();
-            console.log('API Response:', responseData);
 
             if (!generateResponse.ok) {
                 console.error('API Error Response:', responseData);
@@ -139,7 +137,6 @@ export const CoverLetterPage = () => {
                     }
 
                     const pollData = await pollResponse.json();
-                    console.log('Poll Response:', pollData);
 
                     if (!pollResponse.ok) {
                         clearInterval(pollInterval);
@@ -209,7 +206,7 @@ export const CoverLetterPage = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Form Section */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md">
                         {error && (
                             <div className="p-4 bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800">
                                 <div className="flex">

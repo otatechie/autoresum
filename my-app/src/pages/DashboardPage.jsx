@@ -25,9 +25,6 @@ export function DashboardPage() {
                     throw new Error('Not authenticated. Please log in.');
                 }
 
-                console.log('Fetching resumes from:', getApiUrl('resume/list'));
-                console.log('Token:', token ? 'Present' : 'Missing');
-
                 const response = await fetch(getApiUrl('resume/list'), {
                     method: 'GET',
                     headers: {
@@ -37,9 +34,6 @@ export function DashboardPage() {
                     }
                 });
 
-                console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
-
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error('Response error:', errorText);
@@ -47,7 +41,6 @@ export function DashboardPage() {
                 }
 
                 const data = await response.json();
-                console.log('Resumes data:', data);
                 setResumes(Array.isArray(data) ? data : []);
             } catch (err) {
                 console.error('Error fetching resumes:', err);
@@ -110,7 +103,7 @@ export function DashboardPage() {
                 </div>
 
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md">
                         {/* Stats Section */}
                         <div className="p-8 border-b border-gray-200 dark:border-gray-700">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
