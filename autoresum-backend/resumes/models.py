@@ -25,17 +25,17 @@ class Resume(models.Model):
 
     # Work Experience
     work_experience = models.JSONField(
-        default=list, validators=[MinLengthValidator(1)]
+        default=list
     )
 
     # Education
     education = models.JSONField(
-        default=list, validators=[MinLengthValidator(1)]
+        default=list
     )
 
     # Language
     languages = models.JSONField(
-        default=list, validators=[MinLengthValidator(1)]
+        default=list
     )
 
     # Skills & Certifications

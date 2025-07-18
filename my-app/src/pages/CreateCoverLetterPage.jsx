@@ -10,24 +10,24 @@ import { toast } from '../utils/notifications';
 import { getApiUrl } from '../config/environment';
 import { SEO } from '../components/SEO';
 
-export function CreateResumePage() {
+export function CreateCoverLetterPage() {
     const navigate = useNavigate();
     const { user, loading: authLoading } = useAuth();
     const authService = new AuthService();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
-    const [generatedResume, setGeneratedResume] = useState(null);
+    const [generatedCoverLetter, setGeneratedCoverLetter] = useState(null);
     const [generationStatus, setGenerationStatus] = useState('idle'); // 'idle' | 'generating' | 'success' | 'error'
     const [formData, setFormData] = useState({
         first_name: user?.first_name || '',
         last_name: user?.last_name || '',
         email: user?.email || '',
         phone_number: '',
-        work_experience: {},
-        education: {},
-        languages: {},
-        skills: {},
-        certifications: {}
+        company_name: '',
+        job_title: '',
+        job_description: '',
+        hiring_manager: '',
+        reason_for_applying: ''
     });
 
     // Update form data when user data becomes available
@@ -50,52 +50,12 @@ export function CreateResumePage() {
         }));
     };
 
-    const handleWorkExperienceChange = (field, value) => {
-        setFormData(prev => ({
-            ...prev,
-            work_experience: {
-                ...prev.work_experience,
-                [field]: value
-            }
-        }));
-    };
-
-    const handleEducationChange = (field, value) => {
-        setFormData(prev => ({
-            ...prev,
-            education: {
-                ...prev.education,
-                [field]: value
-            }
-        }));
-    };
-
-    const handleSkillsChange = (field, value) => {
-        setFormData(prev => ({
-            ...prev,
-            skills: {
-                ...prev.skills,
-                [field]: value
-            }
-        }));
-    };
-
-    const handleLanguagesChange = (field, value) => {
-        setFormData(prev => ({
-            ...prev,
-            languages: {
-                ...prev.languages,
-                [field]: value
-            }
-        }));
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
         setError(null);
         setGenerationStatus('generating');
-        setGeneratedResume(null);
+        setGeneratedCoverLetter(null);
 
         try {
             const token = authService.getToken();
@@ -103,51 +63,28 @@ export function CreateResumePage() {
                 throw new Error('Not authenticated. Please log in.');
             }
 
+            // Validate required fields
+            const requiredFields = ['first_name', 'last_name', 'email', 'company_name', 'job_title', 'job_description'];
+            const missingFields = requiredFields.filter(field => !formData[field]);
+            if (missingFields.length > 0) {
+                throw new Error(`Please fill in all required fields: ${missingFields.join(', ')}`);
+            }
 
-
-            // Filter out empty fields and prepare data for API
+            // Prepare API data with proper structure matching the API requirements
             const apiData = {
-                first_name: formData.first_name || user?.first_name || '',
-                last_name: formData.last_name || user?.last_name || '',
-                email: formData.email || user?.email || '',
-                phone_number: formData.phone_number || ''
+                first_name: formData.first_name,
+                last_name: formData.last_name,
+                email: formData.email,
+                phone_number: formData.phone_number || '',
+                company_name: formData.company_name,
+                job_title: formData.job_title,
+                job_description: formData.job_description,
+                hiring_manager: formData.hiring_manager || '',
+                reason_for_applying: formData.reason_for_applying || ''
             };
 
-            // Only add work_experience if it has content
-            if (formData.work_experience.company || formData.work_experience.position || formData.work_experience.description) {
-                apiData.work_experience = formData.work_experience;
-            }
-
-            // Only add education if it has content
-            if (formData.education.institution || formData.education.degree) {
-                apiData.education = formData.education;
-            }
-
-            // Only add languages if it has content
-            if (formData.languages.list && formData.languages.list.trim()) {
-                apiData.languages = formData.languages;
-            }
-
-            // Only add skills if it has content
-            if (formData.skills.list && formData.skills.list.trim()) {
-                apiData.skills = formData.skills;
-            }
-
-            // Only add certifications if it has content
-            if (formData.certifications.list && formData.certifications.list.trim()) {
-                apiData.certifications = formData.certifications;
-            }
-
-
-
-            // Validate required fields
-            if (!apiData.first_name || !apiData.last_name || !apiData.email) {
-                toast.error('Please fill in all required fields (First Name, Last Name, Email)');
-                return;
-            }
-
             // First API call to generate content
-            const generateResponse = await fetch(getApiUrl('resume/generate'), {
+            const generateResponse = await fetch(getApiUrl('cover-letter/generate'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -174,20 +111,30 @@ export function CreateResumePage() {
                     throw new Error('OpenAI API quota exceeded. Please try again later or contact support.');
                 }
                 
-                throw new Error(responseData.message || 'Failed to generate resume');
+                throw new Error(responseData.message || 'Failed to generate cover letter');
             }
 
-            const resume_content_id = responseData.resume_content_id;
-            if (!resume_content_id) {
-                throw new Error('No resume content ID received from server');
+            const cover_letter_task_id = responseData.cover_letter_task_id;
+            if (!cover_letter_task_id) {
+                throw new Error('No cover letter task ID received from server');
             }
 
-            toast.info('Resume generation started...');
+            toast.info('Cover letter generation started...');
 
-            // Poll for the generated content
+            // Poll for the generated content with timeout
+            let pollCount = 0;
+            const maxPolls = 30; // 60 seconds max (30 * 2 seconds)
+            
             const pollInterval = setInterval(async () => {
+                pollCount++;
+                if (pollCount > maxPolls) {
+                    clearInterval(pollInterval);
+                    setGenerationStatus('error');
+                    throw new Error('Cover letter generation timed out. Please try again.');
+                }
                 try {
-                    const pollResponse = await fetch(getApiUrl(`resume/generated/${resume_content_id}`), {
+                    console.log('Polling for cover letter status...');
+                    const pollResponse = await fetch(getApiUrl(`cover-letter/generated/${cover_letter_task_id}`), {
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }
@@ -201,21 +148,25 @@ export function CreateResumePage() {
                     }
 
                     const pollData = await pollResponse.json();
+                    console.log('Poll response:', pollData);
 
                     if (!pollResponse.ok) {
                         clearInterval(pollInterval);
-                        throw new Error('Failed to check resume status');
+                        throw new Error('Failed to check cover letter status');
                     }
 
                     if (pollData.status === 'Success') {
                         clearInterval(pollInterval);
-                        setGeneratedResume(pollData.resume);
+                        console.log('Cover letter data received:', pollData.cover_letter);
+                        setGeneratedCoverLetter(pollData.cover_letter);
                         setGenerationStatus('success');
-                        toast.success('Resume generated successfully!');
+                        toast.success('Cover letter generated successfully!');
                     } else if (pollData.status === 'Failed') {
                         clearInterval(pollInterval);
                         setGenerationStatus('error');
-                        throw new Error(pollData.message || 'Resume generation failed');
+                        throw new Error(pollData.message || 'Cover letter generation failed');
+                    } else if (pollData.status === 'Pending') {
+                        console.log('Task still pending, continuing to poll...');
                     }
                 } catch (pollError) {
                     clearInterval(pollInterval);
@@ -225,9 +176,9 @@ export function CreateResumePage() {
             }, 2000);
 
         } catch (error) {
-            console.error('Error generating resume:', error);
-            toast.error(error.message || 'Failed to generate resume. Please try again.');
-            setError(error.message || 'Failed to generate resume. Please try again.');
+            console.error('Error generating cover letter:', error);
+            toast.error(error.message || 'Failed to generate cover letter. Please try again.');
+            setError(error.message || 'Failed to generate cover letter. Please try again.');
             setGenerationStatus('error');
         } finally {
             setIsSubmitting(false);
@@ -252,24 +203,24 @@ export function CreateResumePage() {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <SEO 
-                title="Create Resume"
-                description="Generate a professional resume with our AI-powered tool. Customize your resume and stand out to employers."
-                keywords={['resume generator', 'create resume', 'AI resume', 'professional resume', 'CV generator']}
+                title="Create Cover Letter"
+                description="Generate a professional cover letter with our AI-powered tool. Customize your cover letter and stand out to employers."
+                keywords={['cover letter generator', 'create cover letter', 'AI cover letter', 'professional cover letter', 'job application']}
             />
             
             {/* Header */}
             <div className="bg-white dark:bg-gray-800 p-8 border-b border-gray-200 dark:border-gray-700">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
+                        <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-lg">
                             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path>
                             </svg>
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create Resume</h1>
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create Cover Letter</h1>
                             <p className="mt-2 text-md text-gray-600 dark:text-gray-300">
-                                Fill in your details to generate a professional resume with AI
+                                Fill in your details to generate a professional cover letter with AI
                             </p>
                         </div>
                     </div>
@@ -343,12 +294,11 @@ export function CreateResumePage() {
                                         value={formData.phone_number}
                                         onChange={handleInputChange}
                                         placeholder="+1234567890"
-                                        required={true}
                                     />
                                 </div>
                             </div>
 
-                            {/* Work Experience */}
+                            {/* Job Information */}
                             <div className="p-8">
                                 <div className="flex items-center gap-3 mb-6">
                                     <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900">
@@ -356,100 +306,66 @@ export function CreateResumePage() {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                         </svg>
                                     </div>
-                                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Work Experience (Optional)</h2>
+                                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Job Information</h2>
                                 </div>
                                 <div className="space-y-4">
                                     <TextInput
-                                        label="Company"
-                                        id="company"
-                                        name="company"
-                                        value={formData.work_experience.company || ''}
-                                        onChange={(e) => handleWorkExperienceChange('company', e.target.value)}
+                                        label="Company Name"
+                                        id="company_name"
+                                        name="company_name"
+                                        value={formData.company_name}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., Google, Microsoft"
+                                        required={true}
                                     />
                                     <TextInput
-                                        label="Position"
-                                        id="position"
-                                        name="position"
-                                        value={formData.work_experience.position || ''}
-                                        onChange={(e) => handleWorkExperienceChange('position', e.target.value)}
+                                        label="Job Title"
+                                        id="job_title"
+                                        name="job_title"
+                                        value={formData.job_title}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., Software Engineer, Marketing Manager"
+                                        required={true}
+                                    />
+                                    <TextInput
+                                        label="Hiring Manager (Optional)"
+                                        id="hiring_manager"
+                                        name="hiring_manager"
+                                        value={formData.hiring_manager}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., John Smith, HR Director"
                                     />
                                     <TextAreaInput
-                                        label="Description"
-                                        id="description"
-                                        name="description"
-                                        value={formData.work_experience.description || ''}
-                                        onChange={(e) => handleWorkExperienceChange('description', e.target.value)}
-                                        rows={4}
+                                        label="Job Description"
+                                        id="job_description"
+                                        name="job_description"
+                                        value={formData.job_description}
+                                        onChange={handleInputChange}
+                                        placeholder="Paste the job description or key requirements here..."
+                                        rows={6}
+                                        required={true}
                                     />
                                 </div>
                             </div>
 
-                            {/* Education */}
+                            {/* Additional Information */}
                             <div className="p-8">
                                 <div className="flex items-center gap-3 mb-6">
                                     <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900">
                                         <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                         </svg>
                                     </div>
-                                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Education (Optional)</h2>
-                                </div>
-                                <div className="space-y-4">
-                                    <TextInput
-                                        label="Institution"
-                                        id="institution"
-                                        name="institution"
-                                        value={formData.education.institution || ''}
-                                        onChange={(e) => handleEducationChange('institution', e.target.value)}
-                                    />
-                                    <TextInput
-                                        label="Degree"
-                                        id="degree"
-                                        name="degree"
-                                        value={formData.education.degree || ''}
-                                        onChange={(e) => handleEducationChange('degree', e.target.value)}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Languages */}
-                            <div className="p-8">
-                                <div className="flex items-center gap-3 mb-6">
-                                    <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900">
-                                        <svg className="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-                                        </svg>
-                                    </div>
-                                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Languages (Optional)</h2>
+                                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Additional Information (Optional)</h2>
                                 </div>
                                 <TextAreaInput
-                                    label="Languages (comma-separated)"
-                                    id="languages"
-                                    name="languages"
-                                    value={formData.languages.list || ''}
-                                    onChange={(e) => handleLanguagesChange('list', e.target.value)}
-                                    placeholder="English, Spanish, French"
-                                />
-                            </div>
-
-                            {/* Skills */}
-                            <div className="p-8">
-                                <div className="flex items-center gap-3 mb-6">
-                                    <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900">
-                                        <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                                        </svg>
-                                    </div>
-                                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Skills (Optional)</h2>
-                                </div>
-                                <TextAreaInput
-                                    label="Professional Skills (comma-separated)"
-                                    id="skills"
-                                    name="skills"
-                                    value={formData.skills.list || ''}
-                                    onChange={(e) => handleSkillsChange('list', e.target.value)}
-                                    placeholder="Project Management, Leadership, Communication"
+                                    label="Reason for Applying"
+                                    id="reason_for_applying"
+                                    name="reason_for_applying"
+                                    value={formData.reason_for_applying}
+                                    onChange={handleInputChange}
+                                    placeholder="Why are you interested in this position? What makes you a great fit?"
+                                    rows={4}
                                 />
                             </div>
 
@@ -467,9 +383,9 @@ export function CreateResumePage() {
                                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                 </svg>
-                                                Generating Resume...
+                                                Generating Cover Letter...
                                             </>
-                                        ) : 'Generate Resume'}
+                                        ) : 'Generate Cover Letter'}
                                     </button>
                                 </div>
                             </div>
@@ -484,34 +400,34 @@ export function CreateResumePage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Generated Resume</h2>
+                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Generated Cover Letter</h2>
                         </div>
 
                         {generationStatus === 'idle' && (
                             <div className="text-center py-12">
                                 <div className="mx-auto w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-6">
                                     <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
                                 </div>
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Ready to Create</h3>
                                 <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-                                    Fill in the form on the left and click "Generate Resume" to create your professional resume with AI.
+                                    Fill in the form on the left and click "Generate Cover Letter" to create your professional cover letter with AI.
                                 </p>
                             </div>
                         )}
 
                         {generationStatus === 'generating' && (
                             <div className="text-center py-12">
-                                <div className="mx-auto w-20 h-20 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mb-6">
-                                    <svg className="animate-spin h-10 w-10 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <div className="mx-auto w-20 h-20 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-6">
+                                    <svg className="animate-spin h-10 w-10 text-green-600 dark:text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
                                 </div>
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Generating Resume</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Generating Cover Letter</h3>
                                 <p className="text-gray-500 dark:text-gray-400">
-                                    Our AI is creating your professional resume. This may take a few moments...
+                                    Our AI is creating your professional cover letter. This may take a few moments...
                                 </p>
                             </div>
                         )}
@@ -525,7 +441,7 @@ export function CreateResumePage() {
                                 </div>
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Generation Failed</h3>
                                 <p className="text-gray-500 dark:text-gray-400 mb-4">
-                                    Failed to generate resume. Please try again.
+                                    Failed to generate cover letter. Please try again.
                                 </p>
                                 <button
                                     onClick={() => setGenerationStatus('idle')}
@@ -536,66 +452,66 @@ export function CreateResumePage() {
                             </div>
                         )}
 
-                        {generationStatus === 'success' && generatedResume && (
+                        {generationStatus === 'success' && generatedCoverLetter && (
                             <div className="space-y-6">
+                                {/* Debug info - remove this later */}
+                                <div className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                                        Debug: Cover letter object keys: {Object.keys(generatedCoverLetter).join(', ')}
+                                    </p>
+                                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                                        Has cover_letter_content: {generatedCoverLetter.cover_letter_content ? 'Yes' : 'No'}
+                                    </p>
+                                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                                        Has generated_content: {generatedCoverLetter.generated_content ? 'Yes' : 'No'}
+                                    </p>
+                                </div>
                                 <div className="prose dark:prose-invert max-w-none">
-                                    <h3 className="text-xl font-semibold mb-4">
-                                        {generatedResume.first_name} {generatedResume.last_name}
+                                    <div className="mb-6">
+                                        <h3 className="text-xl font-semibold mb-2">
+                                            {generatedCoverLetter.name}
                                     </h3>
-
-                                    <div className="mb-4">
-                                        <p>{generatedResume.email}</p>
-                                        {generatedResume.phone_number && (
-                                            <p>{generatedResume.phone_number}</p>
+                                        <p>{generatedCoverLetter.email}</p>
+                                        {generatedCoverLetter.phone_number && (
+                                            <p>{generatedCoverLetter.phone_number}</p>
                                         )}
                                     </div>
 
-                                    {generatedResume.resume_summary && (
+                                    {generatedCoverLetter.cover_letter_content && (
                                         <div className="mb-6">
-                                            <h4 className="text-lg font-medium mb-2">Professional Summary</h4>
-                                            <p>{generatedResume.resume_summary}</p>
+                                            <div className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                                                {generatedCoverLetter.cover_letter_content}
+                                        </div>
                                         </div>
                                     )}
 
-                                    {generatedResume.work_experience && (
+                                    {!generatedCoverLetter.cover_letter_content && generatedCoverLetter.generated_content && (
                                         <div className="mb-6">
-                                            <h4 className="text-lg font-medium mb-2">Work Experience</h4>
-                                            <div dangerouslySetInnerHTML={{ __html: generatedResume.work_experience }} />
+                                            <div className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                                                {generatedCoverLetter.generated_content}
+                                        </div>
                                         </div>
                                     )}
 
-                                    {generatedResume.education && (
+                                    {!generatedCoverLetter.cover_letter_content && !generatedCoverLetter.generated_content && (
                                         <div className="mb-6">
-                                            <h4 className="text-lg font-medium mb-2">Education</h4>
-                                            <div dangerouslySetInnerHTML={{ __html: generatedResume.education }} />
-                                        </div>
-                                    )}
-
-                                    {generatedResume.skills && (
-                                        <div className="mb-6">
-                                            <h4 className="text-lg font-medium mb-2">Skills</h4>
-                                            <div dangerouslySetInnerHTML={{ __html: generatedResume.skills }} />
-                                        </div>
-                                    )}
-
-                                    {generatedResume.languages && (
-                                        <div className="mb-6">
-                                            <h4 className="text-lg font-medium mb-2">Languages</h4>
-                                            <div dangerouslySetInnerHTML={{ __html: generatedResume.languages }} />
+                                            <p className="text-gray-500 dark:text-gray-400">
+                                                Cover letter content not available. Please try generating again.
+                                            </p>
                                         </div>
                                     )}
                                 </div>
 
                                 <div className="flex justify-end space-x-4">
                                     <button
-                                        onClick={() => navigate(`/resume/${generatedResume.id}`)}
+                                        onClick={() => navigate(`/cover-letter/${generatedCoverLetter.id}`)}
                                         className="btn-secondary inline-flex items-center gap-2"
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                         </svg>
-                                        View Full Resume
+                                        View Full Cover Letter
                                     </button>
                                     <button
                                         onClick={() => window.print()}
@@ -604,7 +520,7 @@ export function CreateResumePage() {
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                                         </svg>
-                                        Print Resume
+                                        Print Cover Letter
                                     </button>
                                 </div>
                             </div>

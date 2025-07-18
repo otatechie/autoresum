@@ -57,6 +57,22 @@ class ResumeSerializer(serializers.ModelSerializer):
         )
 
 
+class ResumeUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for manual resume updates that allows editing resume_summary"""
+
+    class Meta:
+        model = Resume
+        fields = "__all__"
+        read_only_fields = (
+            "user",
+            "created_at",
+            "updated_at",
+            "original_content",
+            "pdf_url",
+            "update_generate_content_count"
+        )
+
+
 class AIResumeSerializer(serializers.Serializer):
     # Personal Info
     first_name = serializers.CharField(required=True, max_length=255)

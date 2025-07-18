@@ -43,7 +43,8 @@ class UpdateCoverLetterSerializer(serializers.Serializer):
 
 
 class GenerateCoverLetterSerializer(serializers.Serializer):
-    full_name = serializers.CharField(required=True, max_length=255)
+    first_name = serializers.CharField(required=True, max_length=255)
+    last_name = serializers.CharField(required=True, max_length=255)
 
     # Contact Info
     email = serializers.EmailField(required=True, max_length=255)
@@ -65,7 +66,8 @@ class GenerateCoverLetterSerializer(serializers.Serializer):
 
 
 class CoverLetterSerializer(serializers.ModelSerializer):
-    full_name = serializers.CharField(required=False, allow_blank=True, source="name")
+    first_name = serializers.CharField(required=False, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField(required=False, allow_blank=True)
     job_description = serializers.CharField(required=False, allow_blank=True)
     hiring_manager = serializers.CharField(required=False, allow_blank=True)
@@ -82,7 +84,8 @@ class CoverLetterSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoverLetter
         fields = [
-            "full_name",
+            "first_name",
+            "last_name",
             "email",
             "phone_number",
             "company_name",

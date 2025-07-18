@@ -23,7 +23,11 @@ class CoverLetterRepository:
         """Trigger async Celery task and return task ID."""
         from cover_letters.tasks import generate_cover_letter_content_task
 
+        print(f"Repository: Starting cover letter generation for user {user_id}")
+        print(f"Repository: User data: {user_data}")
+        
         task = generate_cover_letter_content_task.apply_async(args=[user_data, user_id])
+        print(f"Repository: Task created with ID: {task.id}")
 
         return task.id
 
@@ -62,6 +66,9 @@ class CoverLetterRepository:
     ):
         """Create a cover letter"""
         try:
+            print(f"Repository: Creating cover letter with content: {content}")
+            print(f"Repository: Name field: {content.get('name')}")
+            
             cover_letter = CoverLetter.objects.create(
                 name=content.get("name"),
                 email=content.get("email"),
@@ -74,8 +81,10 @@ class CoverLetterRepository:
                 user=user,
             )
 
+            print(f"Repository: Cover letter created successfully with ID: {cover_letter.id}")
             return cover_letter
-        except Exception:
+        except Exception as e:
+            print(f"Repository: Error creating cover letter: {e}")
             raise
 
     def update_cover_letter(
@@ -103,7 +112,7 @@ class CoverLetterRepository:
             }
 
             temp = {
-                "name": content.get("full_name", "John Doe"),
+                "name": f"{content.get('first_name', '')} {content.get('last_name', '')}".strip() or "John Doe",
                 **update_fields,
             }
             update = CoverLetter.objects.filter(id=cover_letter_id, user=user).update(

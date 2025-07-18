@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 
 // Navigation item component
 function NavItem({ to, isActive, icon, children, onClick }) {
-    const baseClasses = "flex items-center gap-x-3 text-sm font-medium transition-all duration-300 py-2 px-2 rounded-full relative group";
+    const baseClasses = "flex items-center gap-x-3 text-sm font-medium transition-all duration-300 py-2 px-2 rounded-full relative group cursor-pointer";
     const activeClasses = "text-blue-700 dark:text-blue-300 bg-gradient-to-r from-blue-50 via-blue-50 to-blue-50 dark:from-blue-900/20 dark:via-blue-800/20 dark:to-blue-900/20 shadow-sm border border-blue-100 dark:border-blue-700 transform scale-105";
     const inactiveClasses = "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800/50 dark:hover:to-gray-700/50 hover:shadow-sm";
 
@@ -35,7 +35,7 @@ function UserMenuItem({ to, children, onClick, isRed = false }) {
     return (
         <Link
             to={to}
-            className={`block px-3 py-1 text-sm ${colorClasses} hover:bg-gray-50 dark:hover:bg-gray-700`}
+            className={`block px-3 py-1 text-sm ${colorClasses} hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer`}
             role="menuitem"
             onClick={onClick}
         >
@@ -47,7 +47,7 @@ function UserMenuItem({ to, children, onClick, isRed = false }) {
 // Social media link component
 function SocialLink({ href, icon, label }) {
     return (
-        <a href={href} target="_blank" rel="noopener noreferrer" className="group">
+        <a href={href} target="_blank" rel="noopener noreferrer" className="group cursor-pointer">
             <span className="sr-only">{label}</span>
             <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-all">
                 <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
@@ -62,8 +62,11 @@ function SocialLink({ href, icon, label }) {
 export function DashboardLayout({ children }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false);
     const userMenuRef = useRef(null);
     const userBtnRef = useRef(null);
+    const createDropdownRef = useRef(null);
+    const createBtnRef = useRef(null);
     const navigate = useNavigate();
     const location = useLocation();
     const { signOut, user } = useAuth();
@@ -121,16 +124,25 @@ export function DashboardLayout({ children }) {
     // Simple event handlers
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
     const toggleUserMenu = () => setIsUserMenuOpen(!isUserMenuOpen);
+    const toggleCreateDropdown = () => setIsCreateDropdownOpen(!isCreateDropdownOpen);
     const closeSidebar = (e) => e.target.getAttribute('role') === 'dialog' && setIsSidebarOpen(false);
     const closeUserMenu = () => setIsUserMenuOpen(false);
+    const closeCreateDropdown = () => setIsCreateDropdownOpen(false);
     const goToCreateResume = () => {
         setIsSidebarOpen(false);
+        setIsCreateDropdownOpen(false);
         navigate('/create-resume');
     };
+    const goToCreateCoverLetter = () => {
+        setIsSidebarOpen(false);
+        setIsCreateDropdownOpen(false);
+        navigate('/create-cover-letter');
+    };
 
-    // Check if clicked outside user menu
+    // Check if clicked outside user menu and create dropdown
     React.useEffect(() => {
         function handleClickOutside(event) {
+            // Close user menu if clicked outside
             if (isUserMenuOpen &&
                 userMenuRef.current &&
                 userBtnRef.current &&
@@ -138,11 +150,20 @@ export function DashboardLayout({ children }) {
                 !userBtnRef.current.contains(event.target)) {
                 setIsUserMenuOpen(false);
             }
+            
+            // Close create dropdown if clicked outside
+            if (isCreateDropdownOpen &&
+                createDropdownRef.current &&
+                createBtnRef.current &&
+                !createDropdownRef.current.contains(event.target) &&
+                !createBtnRef.current.contains(event.target)) {
+                setIsCreateDropdownOpen(false);
+            }
         }
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isUserMenuOpen]);
+    }, [isUserMenuOpen, isCreateDropdownOpen]);
 
     // Sidebar content component
     function SidebarContent() {
@@ -152,16 +173,46 @@ export function DashboardLayout({ children }) {
                     <a href="/dashboard"> <img className="h-14 w-auto dark:invert" src="/images/logo.png" alt="Autoresum" /></a>
                 </div>
 
-                <div className="shrink-0">
+                <div className="shrink-0 relative">
                     <button
-                        onClick={goToCreateResume}
+                        ref={createBtnRef}
+                        onClick={toggleCreateDropdown}
                         className="w-full btn-primary inline-flex items-center justify-center gap-x-2"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
                         </svg>
-                        Create resume
+                        Create
+                        <svg className="w-4 h-4 ml-1 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
                     </button>
+
+                    {isCreateDropdownOpen && (
+                        <div
+                            ref={createDropdownRef}
+                            className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10"
+                        >
+                            <button
+                                onClick={goToCreateResume}
+                                className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 cursor-pointer"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Create Resume
+                            </button>
+                            <button
+                                onClick={goToCreateCoverLetter}
+                                className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 cursor-pointer"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                </svg>
+                                Create Cover Letter
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <nav className="flex-1">
@@ -213,16 +264,46 @@ export function DashboardLayout({ children }) {
                         <a href="/dashboard"> <img className="h-14 w-auto dark:invert" src="/images/logo.png" alt="Autoresum" /></a>
                     </div>
 
-                    <div className="shrink-0">
+                    <div className="shrink-0 relative">
                         <button
-                            onClick={goToCreateResume}
+                            ref={createBtnRef}
+                            onClick={toggleCreateDropdown}
                             className="w-full btn-primary inline-flex items-center justify-center gap-x-2"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
                             </svg>
-                            Create resume
+                            Create
+                            <svg className="w-4 h-4 ml-1 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                            </svg>
                         </button>
+
+                        {isCreateDropdownOpen && (
+                            <div
+                                ref={createDropdownRef}
+                                className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10"
+                            >
+                                <button
+                                    onClick={goToCreateResume}
+                                    className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 cursor-pointer"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    Create Resume
+                                </button>
+                                <button
+                                    onClick={goToCreateCoverLetter}
+                                    className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 cursor-pointer"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                    </svg>
+                                    Create Cover Letter
+                                </button>
+                            </div>
+                        )}
                     </div>
 
 
@@ -372,14 +453,11 @@ export function DashboardLayout({ children }) {
             </div>
 
             <footer className="bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-800">
-                <div className="w-full max-w-6xl mx-auto px-6 py-16">
+                <div className="w-full max-w-6xl mx-auto px-6 py-8">
                     <div className="flex flex-col items-center space-y-6">
                         <div className="text-center">
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <p className="text-xs text-gray-400 dark:text-gray-400">
                                 ©2025 Autoresum. All rights reserved.
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                                Autoresum® is a registered trademark of The CV Group.
                             </p>
                         </div>
                     </div>

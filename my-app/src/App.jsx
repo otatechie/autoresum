@@ -30,6 +30,8 @@ import { ResumePage } from './pages/ResumePage'
 import { HelpPage } from './pages/HelpPage'
 import { CoverLetterPage } from './pages/CoverLetterPage'
 import { SubscriptionPage } from './pages/SubscriptionPage'
+import { CreateCoverLetterPage } from './pages/CreateCoverLetterPage'
+
 import './App.css'
 
 export function HomePage() {
@@ -71,6 +73,7 @@ export function App() {
                             <Route path="/help" element={<HelpPage />} />
                             <Route path="/cover-letters" element={<CoverLetterPage />} />
                             <Route path="/subscription" element={<SubscriptionPage />} />
+                            <Route path="/create-cover-letter" element={<CreateCoverLetterPage />} />
                         </Route>
                         <Route element={<BaseLayout><Outlet /></BaseLayout>}>
                             <Route path="/style-guide" element={<StyleGuidePage />} />

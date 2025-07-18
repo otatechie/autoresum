@@ -16,6 +16,21 @@ export function ResumePage() {
     const [selectedResume, setSelectedResume] = useState(null);
     const [activeTab, setActiveTab] = useState('list');
     const [openActionsMenu, setOpenActionsMenu] = useState(null);
+    const [editedContent, setEditedContent] = useState({});
+    const [isSaving, setIsSaving] = useState(false);
+    const [aiUpdateProgress, setAiUpdateProgress] = useState(0);
+    const [editFormData, setEditFormData] = useState({
+        first_name: '',
+        last_name: '',
+        email: '',
+        phone_number: '',
+        resume_summary: '',
+        work_experience: {},
+        education: {},
+        languages: {},
+        skills: {},
+        certifications: {}
+    });
 
     // Close actions menu when clicking outside
     useEffect(() => {
@@ -28,6 +43,60 @@ export function ResumePage() {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [openActionsMenu]);
+
+    // Initialize edit form data when a resume is selected for editing
+    useEffect(() => {
+        if (selectedResume && activeTab === 'edit') {
+            // Helper function to extract first work experience item
+            const getFirstWorkExperience = (workExp) => {
+                if (Array.isArray(workExp) && workExp.length > 0) {
+                    return workExp[0] || {};
+                }
+                return workExp || {};
+            };
+            
+            // Helper function to extract first education item
+            const getFirstEducation = (edu) => {
+                if (Array.isArray(edu) && edu.length > 0) {
+                    return edu[0] || {};
+                }
+                return edu || {};
+            };
+            
+            // Initialize form data from selected resume
+            setEditFormData({
+                first_name: selectedResume.first_name || '',
+                last_name: selectedResume.last_name || '',
+                email: selectedResume.email || '',
+                phone_number: selectedResume.phone_number || '',
+                resume_summary: selectedResume.resume_summary || '',
+                // Handle work experience - extract first item from array or use as is
+                work_experience: getFirstWorkExperience(selectedResume.work_experience),
+                // Handle education - extract first item from array or use as is
+                education: getFirstEducation(selectedResume.education),
+                // Handle skills - convert array to comma-separated string
+                skills: Array.isArray(selectedResume.skills) 
+                    ? { list: selectedResume.skills.join(', ') }
+                    : selectedResume.skills || { list: '' },
+                // Handle languages - convert array to comma-separated string
+                languages: Array.isArray(selectedResume.languages)
+                    ? { list: selectedResume.languages.join(', ') }
+                    : selectedResume.languages || { list: '' },
+                // Handle certifications - convert array to comma-separated string
+                certifications: Array.isArray(selectedResume.certifications)
+                    ? { list: selectedResume.certifications.join(', ') }
+                    : selectedResume.certifications || { list: '' }
+            });
+            
+            // Also keep the old format for backward compatibility
+            const sections = formatResumeContent(selectedResume);
+            const initialContent = {};
+            sections.forEach(section => {
+                initialContent[section.id] = section.content;
+            });
+            setEditedContent(initialContent);
+        }
+    }, [selectedResume, activeTab]);
 
     useEffect(() => {
         // Function to fetch resumes from the backend
@@ -72,7 +141,54 @@ export function ResumePage() {
         }
     }, [user, authLoading]);
 
+    // Form handlers for edit mode
+    const handleEditInputChange = (e) => {
+        const { name, value } = e.target;
+        setEditFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
 
+    const handleEditWorkExperienceChange = (field, value) => {
+        setEditFormData(prev => ({
+            ...prev,
+            work_experience: {
+                ...prev.work_experience,
+                [field]: value
+            }
+        }));
+    };
+
+    const handleEditEducationChange = (field, value) => {
+        setEditFormData(prev => ({
+            ...prev,
+            education: {
+                ...prev.education,
+                [field]: value
+            }
+        }));
+    };
+
+    const handleEditSkillsChange = (field, value) => {
+        setEditFormData(prev => ({
+            ...prev,
+            skills: {
+                ...prev.skills,
+                [field]: value
+            }
+        }));
+    };
+
+    const handleEditLanguagesChange = (field, value) => {
+        setEditFormData(prev => ({
+            ...prev,
+            languages: {
+                ...prev.languages,
+                [field]: value
+            }
+        }));
+    };
 
         const handlePrint = (resume) => {
         // Create a new window for printing
@@ -219,6 +335,197 @@ export function ResumePage() {
                 toast.error('Failed to generate PDF. Please try again.');
             }
         );
+    };
+
+    const handleSaveChanges = async () => {
+        if (!selectedResume) return;
+
+        try {
+            setIsSaving(true);
+            const token = authService.getToken();
+            if (!token) {
+                throw new Error('Not authenticated. Please log in.');
+            }
+
+            // Prepare data for API using the form structure like CreateResumePage
+            const apiData = {
+                first_name: editFormData.first_name || selectedResume.first_name || '',
+                last_name: editFormData.last_name || selectedResume.last_name || '',
+                email: editFormData.email || selectedResume.email || '',
+                phone_number: editFormData.phone_number || selectedResume.phone_number || '',
+                resume_summary: editFormData.resume_summary || selectedResume.resume_summary || ''
+            };
+
+            // Only add work_experience if it has content
+            if (editFormData.work_experience.company || editFormData.work_experience.position || editFormData.work_experience.description) {
+                apiData.work_experience = editFormData.work_experience;
+            } else if (selectedResume.work_experience) {
+                apiData.work_experience = selectedResume.work_experience;
+            }
+
+            // Only add education if it has content
+            if (editFormData.education.institution || editFormData.education.degree) {
+                apiData.education = editFormData.education;
+            } else if (selectedResume.education) {
+                apiData.education = selectedResume.education;
+            }
+
+            // Only add languages if it has content
+            if (editFormData.languages.list && editFormData.languages.list.trim()) {
+                apiData.languages = editFormData.languages;
+            } else if (selectedResume.languages) {
+                apiData.languages = selectedResume.languages;
+            }
+
+            // Only add skills if it has content
+            if (editFormData.skills.list && editFormData.skills.list.trim()) {
+                apiData.skills = editFormData.skills;
+            } else if (selectedResume.skills) {
+                apiData.skills = selectedResume.skills;
+            }
+
+            // Only add certifications if it has content
+            if (editFormData.certifications.list && editFormData.certifications.list.trim()) {
+                apiData.certifications = editFormData.certifications;
+            } else if (selectedResume.certifications) {
+                apiData.certifications = selectedResume.certifications;
+            }
+
+            // Check if any fields were edited
+            const hasEdits = editFormData.resume_summary || 
+                           editFormData.skills.list || 
+                           editFormData.languages.list ||
+                           editFormData.work_experience.company || 
+                           editFormData.work_experience.position || 
+                           editFormData.work_experience.description ||
+                           editFormData.education.institution || 
+                           editFormData.education.degree;
+
+            if (hasEdits) {
+                // Use manual update for all fields
+                await handleManualUpdate(apiData);
+            } else {
+                toast.info('No changes to save.');
+                setIsSaving(false);
+                return;
+            }
+        } catch (err) {
+            toast.error(err.message || 'Failed to update resume. Please try again.');
+            setIsSaving(false);
+                }
+    };
+
+    const handleManualUpdate = async (apiData) => {
+        const token = authService.getToken();
+
+            const response = await fetch(getApiUrl(`resume/update/${selectedResume.id}`), {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+            body: JSON.stringify(apiData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to update resume: ${response.status} ${response.statusText}`);
+            }
+
+            const updatedResumeData = await response.json();
+            
+            // Update the resumes list with the new data
+            setResumes(prevResumes => 
+                prevResumes.map(resume => 
+                    resume.id === selectedResume.id ? updatedResumeData : resume
+                )
+            );
+            
+            // Update the selected resume
+            setSelectedResume(updatedResumeData);
+            
+            toast.success('Resume updated successfully!');
+            setIsSaving(false);
+    };
+
+    const handleAIUpdate = async (apiData) => {
+        const token = authService.getToken();
+        
+        console.log('Starting AI update with data:', apiData);
+        
+        // Step 1: Start AI generation
+        const generateResponse = await fetch(getApiUrl(`resume/generate/update/${selectedResume.id}`), {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(apiData)
+        });
+
+        if (!generateResponse.ok) {
+            const errorText = await generateResponse.text();
+            console.log('AI generation error:', errorText);
+            throw new Error(`Failed to start AI update: ${generateResponse.status} ${generateResponse.statusText}`);
+        }
+
+        const generateData = await generateResponse.json();
+        const resumeContentId = generateData.resume_content_id;
+        
+        console.log('AI generation started, content ID:', resumeContentId);
+        toast.info('AI is updating your resume... This may take a moment.');
+
+        // Step 2: Poll for completion
+        let attempts = 0;
+        const maxAttempts = 30; // 30 seconds max
+        
+        while (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+            setAiUpdateProgress(Math.round((attempts / maxAttempts) * 100));
+            
+            const statusResponse = await fetch(getApiUrl(`resume/generated/update/${resumeContentId}`), {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!statusResponse.ok) {
+                throw new Error(`Failed to check AI update status: ${statusResponse.status}`);
+            }
+
+            const statusData = await statusResponse.json();
+            console.log('AI update status:', statusData);
+
+            if (statusData.status === 'Success') {
+                // AI update completed successfully
+                const updatedResumeData = statusData.resume;
+                
+                // Update the resumes list with the new data
+                setResumes(prevResumes => 
+                    prevResumes.map(resume => 
+                        resume.id === selectedResume.id ? updatedResumeData : resume
+                    )
+                );
+                
+                // Update the selected resume
+                setSelectedResume(updatedResumeData);
+                
+                toast.success('AI has updated your resume successfully!');
+                setIsSaving(false);
+                setAiUpdateProgress(0);
+                return;
+            } else if (statusData.status === 'Failed') {
+                throw new Error(statusData.message || 'AI update failed');
+            }
+            
+            attempts++;
+        }
+        
+        setAiUpdateProgress(0);
+        throw new Error('AI update timed out. Please try again.');
     };
 
     if (isLoading) {
@@ -610,35 +917,261 @@ export function ResumePage() {
 
                             {activeTab === 'edit' && selectedResume && (
                                 <div>
-                                    <div className="flex justify-between items-center mb-6">
+                                    <div className="mb-6">
                                         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                                             Edit Resume - {selectedResume.first_name} {selectedResume.last_name}
                                         </h2>
-                                        <button
-                                            className="btn-primary inline-flex items-center gap-2"
-                                        >
-                                            Save Changes
-                                        </button>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                            Simple fields update instantly. Complex fields use AI for better formatting.
+                                        </p>
                                     </div>
-                                    <div className="space-y-4">
-                                        {formatResumeContent(selectedResume).map(section => (
-                                            <div key={section.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-lg transition-all duration-200">
-                                                <div className="flex justify-between items-center p-4">
-                                                    <h3 className="text-base font-medium text-gray-900 dark:text-white">
-                                                        {section.title}
-                                                    </h3>
+                                    
+                                    <form className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                                        {/* Personal Information */}
+                                        <div className="p-8">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
+                                                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                    </svg>
                                                 </div>
-                                                <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                                                    <textarea
-                                                        className="w-full h-32 px-3 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                        value={section.content}
-                                                        readOnly
-                                                        placeholder="Content will be editable in future updates..."
+                                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Personal Information</h2>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                        First Name
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        name="first_name"
+                                                        value={editFormData.first_name}
+                                                        onChange={handleEditInputChange}
+                                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                        Last Name
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        name="last_name"
+                                                        value={editFormData.last_name}
+                                                        onChange={handleEditInputChange}
+                                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                        Email Address
+                                                    </label>
+                                                    <input
+                                                        type="email"
+                                                        name="email"
+                                                        value={editFormData.email}
+                                                        onChange={handleEditInputChange}
+                                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                        Phone Number
+                                                    </label>
+                                                    <input
+                                                        type="tel"
+                                                        name="phone_number"
+                                                        value={editFormData.phone_number}
+                                                        onChange={handleEditInputChange}
+                                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                                                     />
                                                 </div>
                                             </div>
-                                        ))}
+                                        </div>
+
+                                        {/* Professional Summary */}
+                                        <div className="p-8">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900">
+                                                    <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                </div>
+                                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Professional Summary</h2>
+                                                <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 px-2 py-1 rounded">
+                                                    Instant Update
+                                                </span>
+                                            </div>
+                                            <textarea
+                                                name="resume_summary"
+                                                value={editFormData.resume_summary}
+                                                onChange={handleEditInputChange}
+                                                rows={4}
+                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                                placeholder="Enter your professional summary..."
+                                            />
+                                        </div>
+
+                                        {/* Work Experience */}
+                                        <div className="p-8">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900">
+                                                    <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                    </svg>
+                                                </div>
+                                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Work Experience</h2>
+                                                <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 px-2 py-1 rounded">
+                                                    Instant Update
+                                                </span>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                        Company
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={editFormData.work_experience.company || ''}
+                                                        onChange={(e) => handleEditWorkExperienceChange('company', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                        Position
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={editFormData.work_experience.position || ''}
+                                                        onChange={(e) => handleEditWorkExperienceChange('position', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                        Description
+                                                    </label>
+                                                    <textarea
+                                                        value={editFormData.work_experience.description || ''}
+                                                        onChange={(e) => handleEditWorkExperienceChange('description', e.target.value)}
+                                                        rows={4}
+                                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                                        placeholder="Describe your role and achievements..."
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Education */}
+                                        <div className="p-8">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900">
+                                                    <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                                                    </svg>
+                                                </div>
+                                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Education</h2>
+                                                <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 px-2 py-1 rounded">
+                                                    Instant Update
+                                                </span>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                        Institution
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={editFormData.education.institution || ''}
+                                                        onChange={(e) => handleEditEducationChange('institution', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                        Degree
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={editFormData.education.degree || ''}
+                                                        onChange={(e) => handleEditEducationChange('degree', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Skills */}
+                                        <div className="p-8">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900">
+                                                    <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                                    </svg>
+                                                </div>
+                                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Skills</h2>
+                                                <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 px-2 py-1 rounded">
+                                                    Instant Update
+                                                </span>
+                                            </div>
+                                            <textarea
+                                                value={editFormData.skills.list || ''}
+                                                onChange={(e) => handleEditSkillsChange('list', e.target.value)}
+                                                rows={3}
+                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                                placeholder="Enter your skills (comma-separated)..."
+                                            />
+                                        </div>
+
+                                        {/* Languages */}
+                                        <div className="p-8">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900">
+                                                    <svg className="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                                                    </svg>
+                                                </div>
+                                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Languages</h2>
+                                                <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 px-2 py-1 rounded">
+                                                    Instant Update
+                                                </span>
+                                            </div>
+                                            <textarea
+                                                value={editFormData.languages.list || ''}
+                                                onChange={(e) => handleEditLanguagesChange('list', e.target.value)}
+                                                rows={3}
+                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                                placeholder="Enter your languages (comma-separated)..."
+                                            />
+                                        </div>
+
+                                        {/* Form Actions */}
+                                        <div className="p-8 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-b-xl">
+                                            <div className="flex justify-end">
+                                        <button
+                                            onClick={handleSaveChanges}
+                                            disabled={isSaving}
+                                                    className={`btn-primary btn-lg inline-flex items-center gap-x-3 ${isSaving ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 transition-transform'}`}
+                                        >
+                                            {isSaving ? (
+                                                <>
+                                                            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                            {aiUpdateProgress > 0 ? `AI Processing... ${aiUpdateProgress}%` : 'Saving...'}
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Save Changes
+                                                </>
+                                            )}
+                                        </button>
                                     </div>
+                                                </div>
+                                    </form>
                                 </div>
                             )}
                         </div>

@@ -19,6 +19,7 @@ from resumes.models import Resume
 from resumes.serializers import (
     CreateResumeSerializer,
     ResumeSerializer,
+    ResumeUpdateSerializer,
     UpdateResumeSerializer,
 )
 from subscriptions.models import SubscriptionPlan
@@ -378,7 +379,7 @@ class ResumeCreateView(CreateAPIView):
 class ResumeUpdateView(UpdateAPIView):
     """API VIEW TO UPDATE RESUME (NO AI GENERATION)"""
 
-    serializer_class = ResumeSerializer
+    serializer_class = ResumeUpdateSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
@@ -391,10 +392,12 @@ class ResumeUpdateView(UpdateAPIView):
             raise Http404("Resume not found")
 
     def update(self, request, *args, **kwargs):
-
-        response = super().update(request, *args, **kwargs)
-
-        return response
+        """Update resume using standard DRF behavior"""
+        logger.info(f"Updating resume {self.kwargs['resume_id']} for user {request.user.id}")
+        logger.info(f"Update data: {request.data}")
+        
+        # Let DRF handle the update normally
+        return super().update(request, *args, **kwargs)
 
 
 # generate updated content

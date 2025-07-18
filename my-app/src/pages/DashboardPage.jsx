@@ -166,11 +166,11 @@ export function DashboardPage() {
                                     <div className="flex items-center">
                                         <div className="p-3 rounded-xl bg-orange-500 shadow-lg">
                                             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path>
                                             </svg>
                                         </div>
                                         <div className="ml-4">
-                                            <p className="text-sm font-medium text-orange-600 dark:text-orange-400">Downloads</p>
+                                            <p className="text-sm font-medium text-orange-600 dark:text-orange-400">Cover Letters</p>
                                             <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">0</p>
                                         </div>
                                     </div>
@@ -180,59 +180,98 @@ export function DashboardPage() {
 
                         {/* Recent Activity */}
                         <div className="p-8 border-b border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Recent Activity</h2>
-                                <Link to="/resumes" className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors">
-                                    View All
-                                </Link>
-                            </div>
-                            <div className="space-y-4">
-                                {resumes.slice(0, 5).map((resume) => (
-                                    <div key={resume.id} className="group relative bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-lg transition-all duration-200">
-                                        <div className="flex items-start">
-                                            <div className="flex-shrink-0">
-                                                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
-                                                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                {/* Recent Resumes */}
+                                <div>
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Recent Resumes</h2>
+                                        <Link to="/resumes" className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors">
+                                            View All
+                                        </Link>
+                                    </div>
+                                    <div className="space-y-4">
+                                        {resumes.slice(0, 3).map((resume) => (
+                                            <div key={resume.id} className="group relative bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-lg transition-all duration-200">
+                                                <div className="flex items-start">
+                                                    <div className="flex-shrink-0">
+                                                        <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/50 shadow-sm">
+                                                            <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                            </svg>
+                                                        </div>
+                                                    </div>
+                                                    <div className="ml-4 flex-1 min-w-0">
+                                                        <div className="flex items-center justify-between">
+                                                            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                                                {resume.first_name} {resume.last_name}
+                                                            </p>
+                                                            <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ml-2">
+                                                                {new Date(resume.modified_at || resume.created_at).toLocaleDateString('en-US', {
+                                                                    year: 'numeric',
+                                                                    month: 'long',
+                                                                    day: 'numeric'
+                                                                })}
+                                                            </span>
+                                                        </div>
+                                                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 truncate">
+                                                            {resume.email}
+                                                        </p>
+                                                        <div className="mt-2 flex items-center space-x-2">
+                                                            <button
+                                                                onClick={() => handleDownload(resume)}
+                                                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors cursor-pointer"
+                                                            >
+                                                                Download
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="ml-4 opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-2 group-hover:translate-x-0">
+                                                        <Link
+                                                            to={`/resume/${resume.id}`}
+                                                            className="btn-secondary btn-sm btn-icon"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                            </svg>
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {resumes.length === 0 && (
+                                            <div className="text-center py-8">
+                                                <div className="mx-auto w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
+                                                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                     </svg>
                                                 </div>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">No resumes yet</p>
                                             </div>
-                                            <div className="ml-4 flex-1 min-w-0">
-                                                <div className="flex items-center justify-between">
-                                                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                                                        {resume.first_name} {resume.last_name}
-                                                    </p>
-                                                    <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ml-2">
-                                                        {new Date(resume.modified_at || resume.created_at).toLocaleDateString('en-US', {
-                                                            year: 'numeric',
-                                                            month: 'long',
-                                                            day: 'numeric'
-                                                        })}
-                                                    </span>
-                                                </div>
-                                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 truncate">
-                                                    {resume.email}
-                                                </p>
-                                                <div className="mt-2 flex items-center space-x-2">
-                                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                                        Resume Created
-                                                    </span>
-                                                </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Recent Cover Letters */}
+                                <div>
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Recent Cover Letters</h2>
+                                        <Link to="/cover-letters" className="text-sm font-medium text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 transition-colors">
+                                            View All
+                                        </Link>
+                                    </div>
+                                    <div className="space-y-4">
+                                        {/* Placeholder for cover letters - will be populated when cover letter data is available */}
+                                        <div className="text-center py-8">
+                                            <div className="mx-auto w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
+                                                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path>
+                                                </svg>
                                             </div>
-                                            <div className="ml-4 opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-2 group-hover:translate-x-0">
-                                                <Link
-                                                    to={`/resume/${resume.id}`}
-                                                    className="btn-secondary btn-sm btn-icon"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                </Link>
-                                            </div>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">No cover letters yet</p>
                                         </div>
                                     </div>
-                                ))}
+                                </div>
                             </div>
                         </div>
 
@@ -247,7 +286,7 @@ export function DashboardPage() {
                                     <div className="flex items-center">
                                         <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg group-hover:scale-110 transition-transform duration-200">
                                             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                         </div>
                                         <div className="ml-4">
@@ -257,13 +296,13 @@ export function DashboardPage() {
                                     </div>
                                 </Link>
                                 <Link
-                                    to="/cover-letter"
+                                    to="/create-cover-letter"
                                     className="group relative p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl border border-green-200 dark:border-green-700 hover:border-green-300 dark:hover:border-green-600 hover:shadow-lg transition-all duration-200"
                                 >
                                     <div className="flex items-center">
                                         <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-lg group-hover:scale-110 transition-transform duration-200">
                                             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path>
                                             </svg>
                                         </div>
                                         <div className="ml-4">
@@ -289,119 +328,6 @@ export function DashboardPage() {
                                     </div>
                                 </Link>
                             </div>
-                        </div>
-
-                        {/* Resumes Grid */}
-                        <div className="p-8">
-                            <div className="mb-6">
-                                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Your Resumes</h2>
-                            </div>
-                            
-                            {error ? (
-                                <div className="rounded-xl bg-red-50 dark:bg-red-900/20 p-6 border border-red-200 dark:border-red-800">
-                                    <div className="flex items-center">
-                                        <div className="flex-shrink-0">
-                                            <svg className="h-6 w-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <div className="ml-3">
-                                            <h3 className="text-sm font-semibold text-red-800 dark:text-red-400">Error loading resumes</h3>
-                                            <p className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : resumes.length > 0 ? (
-                                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                                    {resumes.map((resume) => (
-                                        <div
-                                            key={resume.id}
-                                            className="group relative bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-lg transition-all duration-200"
-                                        >
-                                            <div className="flex items-start justify-between mb-4">
-                                                <div className="flex items-center">
-                                                    <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
-                                                        <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                        </svg>
-                                                    </div>
-                                                    <div className="ml-3">
-                                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                                            {resume.first_name} {resume.last_name}
-                                                        </h3>
-                                                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                            {resume.email}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                                    Active
-                                                </span>
-                                            </div>
-                                            
-                                            <div className="space-y-3 mb-6">
-                                                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                    </svg>
-                                                    Created {new Date(resume.created_at).toLocaleDateString('en-US', {
-                                                        year: 'numeric',
-                                                        month: 'long',
-                                                        day: 'numeric'
-                                                    })}
-                                                </div>
-                                                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                    </svg>
-                                                    Last updated {new Date(resume.modified_at || resume.created_at).toLocaleDateString('en-US', {
-                                                        year: 'numeric',
-                                                        month: 'long',
-                                                        day: 'numeric'
-                                                    })}
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="flex items-center space-x-3">
-                                                <Link
-                                                    to={`/resume/${resume.id}`}
-                                                    className="btn-secondary flex-1"
-                                                >
-                                                 
-                                                    View
-                                                </Link>
-                                                <button
-                                                    onClick={() => handleDownload(resume)}
-                                                    className="btn-primary flex-1"
-                                                >
-                                                    Download
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-12">
-                                    <div className="mx-auto w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-6">
-                                        <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
-                                    </div>
-                                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No resumes yet</h3>
-                                    <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                                        Get started by creating your first professional resume. Our AI-powered builder will help you create a compelling resume in minutes.
-                                    </p>
-                                    <Link
-                                        to="/create-resume"
-                                        className="btn-primary btn-lg"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        Create Your First Resume
-                                    </Link>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>

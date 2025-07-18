@@ -245,8 +245,8 @@ except (ImportError, redis.ConnectionError) as e:
 
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
-# Use Django database as result backend and run tasks synchronously for development
-CELERY_TASK_ALWAYS_EAGER = True  # Run tasks synchronously during testing
+# Use Django database as result backend and run tasks asynchronously for development
+CELERY_TASK_ALWAYS_EAGER = False  # Run tasks asynchronously for development
 CELERY_TASK_EAGER_PROPAGATES = True  # Propagate exceptions during testing
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60

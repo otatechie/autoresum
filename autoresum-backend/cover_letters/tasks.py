@@ -13,19 +13,27 @@ from users.models import User
 @shared_task
 def generate_cover_letter_content_task(user_data: dict, user_id: int):
     """Celery task to generate a cover letter asynchronously."""
+    print(f"Starting cover letter generation task for user {user_id}")
+    print(f"User data: {user_data}")
+    
     try:
         # Fetch the user inside Celery
-        User.objects.get(id=user_id)
+        user = User.objects.get(id=user_id)
+        print(f"User found: {user.email}")
     except User.DoesNotExist:
+        print(f"User with id {user_id} not found")
         raise ValueError(f"User with id {user_id} not found.")
 
+    print("Creating cover letter generator...")
     cover_letter_generator = Container.cover_letter_generator()
 
     # Ensure phone number is properly formatted
     if not user_data.get('phone_number'):
         user_data['phone_number'] = ''  # Set empty string if not provided
 
+    print("Generating cover letter content...")
     result = cover_letter_generator.generate_cover_letter(user_data)
+    print(f"Cover letter generation completed. Result: {result}")
     return result  # This already contains original_content and parsed_content
 
 
