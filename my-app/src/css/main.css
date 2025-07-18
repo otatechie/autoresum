@@ -1,0 +1,332 @@
+@import "tailwindcss";
+
+@theme {
+    --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+
+@layer components {
+
+    /* Debug - Add this class to debug dark mode */
+    .debug-dark-mode {
+        outline: 3px solid red !important;
+    }
+
+    /* Navigation Links */
+    .nav-link {
+        @apply px-4 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white transition-all whitespace-nowrap;
+    }
+
+    .mobile-nav-link {
+        @apply px-4 py-2 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white transition-all;
+    }
+
+    /* Card Components */
+    .auth-card {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        width: 32rem;
+        max-width: 100%;
+        margin: 0;
+        border: 1px solid rgb(209 213 219);
+    }
+
+    :is(.dark) .auth-card {
+        background-color: rgb(31 41 55);
+        border-color: rgb(55 65 81);
+    }
+
+    /* Form Elements */
+    .form-control {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        background-color: white;
+        border: 0.12rem solid rgb(209 213 219);
+        border-radius: 0.5rem;
+        color: rgb(17 24 39);
+        transition: all 150ms ease;
+        font-size: 0.875rem;
+    }
+
+    .form-control:hover:not(:focus) {
+        border-color: rgb(147 197 253);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: rgb(59 130 246);
+        box-shadow: 0 0 0 2px rgb(147 197 253 / 0.2);
+    }
+
+    /* Super high specificity selectors for dark mode */
+    html.dark input.form-control,
+    html.dark textarea.form-control,
+    html.dark select.form-control,
+    html:is(.dark) input.form-control,
+    html:is(.dark) textarea.form-control,
+    html:is(.dark) select.form-control,
+    .dark input.form-control,
+    .dark textarea.form-control,
+    .dark select.form-control,
+    :is(.dark) input.form-control,
+    :is(.dark) textarea.form-control,
+    :is(.dark) select.form-control,
+    html.dark .form-control,
+    html:is(.dark) .form-control,
+    .dark .form-control,
+    :is(.dark) .form-control {
+        background-color: rgb(31 41 55) !important;
+        border-color: rgb(55 65 81) !important;
+        color: rgb(229 231 235) !important;
+    }
+
+    html.dark input.form-control:focus,
+    html.dark textarea.form-control:focus,
+    html.dark select.form-control:focus,
+    html:is(.dark) input.form-control:focus,
+    html:is(.dark) textarea.form-control:focus,
+    html:is(.dark) select.form-control:focus,
+    .dark input.form-control:focus,
+    .dark textarea.form-control:focus,
+    .dark select.form-control:focus,
+    :is(.dark) input.form-control:focus,
+    :is(.dark) textarea.form-control:focus,
+    :is(.dark) select.form-control:focus,
+    html.dark .form-control:focus,
+    html:is(.dark) .form-control:focus,
+    .dark .form-control:focus,
+    :is(.dark) .form-control:focus {
+        border-color: rgb(96 165 250) !important;
+        box-shadow: 0 0 0 2px rgb(96 165 250 / 0.2) !important;
+    }
+
+    label {
+        display: block;
+        font-size: 0.98rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: rgb(17 24 39);
+    }
+
+    :is(.dark) label {
+        color: rgb(229 231 235);
+    }
+
+    /* Button System */
+    /* Base Button */
+    .btn {
+        cursor: pointer;
+        padding: 0.2rem 1rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        border-radius: 9999px;
+        transition: all 150ms ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.75rem;
+        min-width: 6rem;
+        background-color: white;
+    }
+
+    /* Button Sizes */
+    .btn-lg {
+        padding: 0.875rem 2rem;
+        font-size: 1rem;
+        min-height: 3rem;
+        min-width: 8rem;
+    }
+
+    /* Button Variants */
+    .btn-gradient {
+        cursor: pointer;
+        color: white;
+        background: linear-gradient(to right, #2563eb, #4f46e5);
+        border: none;
+    }
+
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+    }
+
+    .btn-outline {
+        cursor: pointer;
+        color: #111827;
+        background: transparent;
+        border: 2px solid #111827;
+    }
+
+    .btn-outline:hover {
+        background-color: #f9fafb;
+    }
+
+    .btn-primary {
+        cursor: pointer;
+        width: auto;
+        background-color: rgb(59 130 246);
+        color: white;
+        border: 2px solid rgb(37 99 235);
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 9999px;
+    }
+
+    .btn-primary:hover {
+        background-color: rgb(37 99 235);
+    }
+
+    .btn-primary:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgb(59 130 246), 0 0 0 4px white;
+    }
+
+    .btn-white {
+        cursor: pointer;
+        background-color: white;
+        color: #2563eb;
+        border: none;
+    }
+
+    .btn-white:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-outline-white {
+        cursor: pointer;
+        background-color: transparent;
+        color: white;
+        border: 2px solid white;
+    }
+
+    .btn-outline-white:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+    }
+
+    /* Google Button */
+    .btn-google {
+        cursor: pointer;
+        width: 100%;
+        background-color: white;
+        border: 1px solid rgb(209 213 219);
+        color: rgb(17 24 39);
+        padding: 0.7rem 1.5rem;
+        font-size: 0.975rem;
+        border-radius: 9999px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 1rem;
+        min-height: 2.75rem;
+    }
+
+    .btn-google:hover {
+        background-color: rgb(249 250 251);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+        border-color: rgb(156 163 175);
+    }
+
+    /* Button States */
+    .btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    .btn:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px #3b82f6, 0 0 0 4px white;
+    }
+
+    /* Dark Mode Button Styles */
+    :is(.dark) .btn-outline {
+        color: white;
+        border-color: white;
+    }
+
+    :is(.dark) .btn-outline:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    :is(.dark) .btn-primary {
+        background-color: rgb(37 99 235);
+    }
+
+    :is(.dark) .btn-primary:hover {
+        background-color: rgb(29 78 216);
+    }
+
+    :is(.dark) .btn-primary:focus {
+        box-shadow: 0 0 0 2px rgb(37 99 235), 0 0 0 4px rgb(31 41 55);
+    }
+
+    /* Dark mode variant */
+    :is(.dark) .btn-google {
+        background-color: rgb(31 41 55);
+        border-color: rgb(75 85 99);
+        color: rgb(229 231 235);
+    }
+
+    :is(.dark) .btn-google:hover {
+        background-color: rgb(55 65 81);
+        border-color: rgb(107 114 128);
+    }
+
+    :is(.dark) .btn-white {
+        color: #1e293b;
+    }
+
+    :is(.dark) .btn-white:hover {
+        background-color: #f1f5f9;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    :is(.dark) .btn:focus {
+        box-shadow: 0 0 0 2px #3b82f6, 0 0 0 4px #111827;
+    }
+
+    /* Links */
+    .link-primary {
+        color: rgb(59 130 246);
+        text-decoration: underline;
+        transition: all 150ms ease;
+    }
+
+    .link-primary:hover {
+        color: rgb(37 99 235);
+    }
+
+    :is(.dark) .link-primary {
+        color: rgb(96 165 250);
+    }
+
+    :is(.dark) .link-primary:hover {
+        color: rgb(147 197 253);
+    }
+
+    /* Footer Link */
+    .footer-link {
+        color: rgb(55 65 81);
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        text-decoration-color: rgb(209 213 219);
+        transition: all 150ms ease;
+    }
+
+    .footer-link:hover {
+        text-decoration-color: rgb(37 99 235);
+    }
+
+    :is(.dark) .footer-link {
+        color: rgb(156 163 175);
+        text-decoration-color: rgb(75 85 99);
+    }
+}

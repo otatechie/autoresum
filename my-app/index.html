@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Primary Meta Tags -->
+    <title>AutoResum - AI-Powered Resume Builder & Cover Letter Generator</title>
+    <meta name="title" content="AutoResum - AI-Powered Resume Builder & Cover Letter Generator">
+    <meta name="description" content="Create professional resumes and cover letters in minutes with AutoResum's AI-powered platform. Tailored for your industry, ATS-friendly, and professionally designed templates.">
+    <meta name="keywords" content="resume builder, AI resume, cover letter generator, job application, career tools, professional resume, ATS-friendly resume">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://autoresum.com/">
+    <meta property="og:title" content="AutoResum - AI-Powered Resume Builder & Cover Letter Generator">
+    <meta property="og:description" content="Create professional resumes and cover letters in minutes with AutoResum's AI-powered platform. Tailored for your industry, ATS-friendly, and professionally designed templates.">
+    <meta property="og:image" content="/images/og-image.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://autoresum.com/">
+    <meta property="twitter:title" content="AutoResum - AI-Powered Resume Builder & Cover Letter Generator">
+    <meta property="twitter:description" content="Create professional resumes and cover letters in minutes with AutoResum's AI-powered platform. Tailored for your industry, ATS-friendly, and professionally designed templates.">
+    <meta property="twitter:image" content="/images/og-image.jpg">
+
+    <!-- Additional SEO -->
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="AutoResum">
+    <meta name="theme-color" content="#1E40AF">
+    <link rel="canonical" href="https://autoresum.com/">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+
+    <!-- JSON-LD for Rich Results -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "AutoResum",
+        "description": "AI-powered resume builder and cover letter generator",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "featureList": [
+            "AI-powered resume generation",
+            "Professional templates",
+            "ATS-friendly formats",
+            "Cover letter generator",
+            "Real-time preview",
+            "Multiple export formats"
+        ]
+    }
+    </script>
+
+    <!-- Dark Mode Script -->
+    <script>
+        // Initialize dark mode based on system preference
+        (function () {
+            try {
+                // Check system preference only
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+                // Apply dark mode based on system preference
+                if (prefersDark) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch (e) {
+                // Fallback in case of any errors
+            }
+        })();
+    </script>
+</head>
+
+<body class="bg-slate-50 dark:bg-gray-900">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+</body>
+
+</html>
